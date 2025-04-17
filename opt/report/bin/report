@@ -1,0 +1,100 @@
+#!/usr/bin/env ruby
+
+# Requirements
+require "tty-prompt"
+require "yaml"
+
+# Initialise Variables
+username = ENV['USER']
+issue_time = Time.now.strftime("%Y%m%d-%H%M%S")
+
+logdir = 'var/reports'
+logfile = "#{logdir}/.user-report-#{username}-#{issue_time}.log"
+
+issues = {}
+issuesdir = 'opt/report/etc/issues'
+
+# Create prompt
+prompt = TTY::Prompt.new(active_color: :blue)
+
+# Check with user
+report = prompt.yes?('Would you like to report an issue?', default: false) 
+if ! report 
+  puts "Not reporting anything."
+  exit
+end
+
+# Select issue
+## Identify issues by directory name so we can run scripts and things from in there 
+issuedirs = Dir.entries(issuesdir).select{|dir| !(dir == '.' || dir == '..' || dir == 'general')}
+## Create a map of all the issue directories and their metadata+questions
+issuedirs.each do |issue|
+  issuedir = "#{issuesdir}/#{issue}"
+  issues[issue] = YAML.load_file("#{issuedir}/metadata.yaml")
+  if File.file? "#{issuedir}/questions.yaml"
+    issues[issue]['questions'] = YAML.load_file("#{issuedir}/questions.yaml")
+  end
+end
+my_issue = prompt.select("What issue would you like to report?") do |menu| 
+  issues.each.map {|dir,data| menu.choice "#{data['title']} (#{data['desc']})", dir}
+end
+
+# Ask additional questions
+diag_vars = {}
+if issues[my_issue].key?('questions') then
+  issues[my_issue]['questions'].each do |question|
+    case question['type']
+    when "boolean"
+      answer = prompt.yes?(question['question'])
+    when "list"
+      answer = prompt.select(question['question'], question['options'])
+    when "text"
+      answer = prompt.ask(question['question'])
+    when "number"
+      answer = prompt.ask(question['question']) do |q|
+        q.validate(/^[0-9]*$/, "Answer must be a number or empty")
+      end
+    end
+    diag_vars[question['var']] = answer
+  end
+end
+
+# Run diagnostics
+general_scripts = Dir.glob("#{issuesdir}/general/*.bash")
+## General scripts
+general_script_outputs = []
+general_scripts.each do |script|
+  general_script_outputs.append(`bash #{script} 2>&1`)
+end
+
+## Issue specific
+issue_script = "#{issuesdir}/#{my_issue}/diagnostics.bash"
+
+diag_vars.each do |key, val|
+  ENV[key] = val
+end
+
+issue_script_out = `bash #{issue_script} 2>&1`
+
+# Feedback to user
+logfile = "#{logdir}/.user-report-#{my_issue}-#{username}-#{issue_time}.log"
+confirm = false
+until confirm
+  report = prompt.yes?("Would you like to report this?", default: false)
+  confirm = prompt.yes?("Are you sure?", default: false)
+end
+
+if confirm
+  puts "Logging to #{logfile}"
+else
+  puts "Not reporting, thank you for your time"
+  exit
+end
+
+# Log report
+general_script_outputs.each do |out|
+  File.write(logfile, out, mode: 'a+')
+end
+File.write(logfile, issue_script_out, mode: 'a+')
+
+puts "Log reported, thank you for your time"

@@ -1,0 +1,13 @@
+- question: 'Which filesystem did this occur on?'
+  type: list
+  options:
+    - /users
+    - /opt/data
+    - /mnt/isilon
+  var: FILESYSTEM
+- question: 'On which host did this occur?'
+  type: text
+  var: HOST # exported to environment where diagnostic script is run
+- question: 'Please provide relevant Job ID (if applicable)'
+  type: number
+  var: JOBID
