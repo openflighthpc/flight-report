@@ -65,6 +65,8 @@ if my_issue.key?('questions') then
 end
 
 # Run diagnostics
+prompt.ok("Running diagnostics...")
+
 general_scripts = Dir.glob("#{issuesdir}/general/*.bash")
 ## General scripts
 general_script_outputs = []
