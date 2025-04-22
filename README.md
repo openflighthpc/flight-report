@@ -15,8 +15,7 @@ git clone https://github.com/openflighthpc/flight-report /tmp/flight-report
 cp -r /tmp/flight-report/opt $flight_ROOT/
 cp -r /tmp/flight-report/libexec $flight_ROOT/
 
-# Create log directory and make it writeable by all users
-mkdir -p $flight_ROOT/opt/report/var/reports
+# Ensure log directory is writeable by all users
 chmod 777 $flight_ROOT/opt/report/var/reports
 
 # Install ruby dependencies
