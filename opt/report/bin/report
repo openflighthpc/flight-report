@@ -17,7 +17,7 @@ issues = {}
 issuesdir = report_dir + '/etc/issues'
 
 # Create prompt
-prompt = TTY::Prompt.new(active_color: :blue)
+prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
 # Check with user
 report = prompt.yes?('Would you like to report an issue?', default: false) 
