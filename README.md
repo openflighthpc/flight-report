@@ -12,7 +12,7 @@ git clone https://github.com/openflighthpc/flight-report /tmp/flight-report
 
 cp -r /tmp/flight-report/opt $flight_ROOT/
 cp -r /tmp/flight-report/libexec $flight_ROOT/
-mkdir -p $flight_ROOT/var/reports
+mkdir -p $flight_ROOT/opt/report/var/reports
 
 cd $flight_ROOT/opt/report/
 $flight_ROOT/bin/bundle config set --local path vendor
