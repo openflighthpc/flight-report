@@ -98,25 +98,29 @@ end
 diag_out = general_script_outputs + [issue_script_out]
 
 # Show diagnostics to user
-view = prompt.yes?("Would you like to view diagnostics?", default: false)
-if view
-  IO.popen("less", "w") { |f| f.puts diag_out }
+if ! config['hide_diagnostics']
+  view = prompt.yes?("Would you like to view diagnostics?", default: false)
+  if view
+    IO.popen("less", "w") { |f| f.puts diag_out }
+  end
 end
 
 # Compare to previous
-prev_report_from_user = Dir.glob("#{logdir}/.user-report-#{my_issue_dir}-#{username}*.log").last
+if ! config['hide_compare']
+  prev_report_from_user = Dir.glob("#{logdir}/.user-report-#{my_issue_dir}-#{username}*.log").last
 
-if prev_report_from_user && File.file?(prev_report_from_user)
-  # Identify metadata from filename of previous report
-  ## Array of ["", "user", "report", ISSUE_NAME, USERNAME, DATE, TIME, "log"]
-  prev_data = File.basename(prev_report_from_user).split(/[-,.]/)
-  prev_datetime = DateTime.parse(prev_data[-3] + prev_data[-2])
-  compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
-  if compare
-    current = "# Current Diagnostics: #{DateTime.parse(issue_date + issue_time).strftime("%Y-%m-%d %H:%M:%S")}\n#{diag_out.join('\n')}"
-    previous = "# Previous Diagnostics: #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}\n#{File.read(prev_report_from_user)}"
-    diff_to_prev = `diff -y --width=#{`tput cols`.to_i} <(echo -e '#{current}') <(echo -e '#{previous}')`
-    IO.popen("less", "w") { |f| f.puts diff_to_prev }
+  if prev_report_from_user && File.file?(prev_report_from_user)
+    # Identify metadata from filename of previous report
+    ## Array of ["", "user", "report", ISSUE_NAME, USERNAME, DATE, TIME, "log"]
+    prev_data = File.basename(prev_report_from_user).split(/[-,.]/)
+    prev_datetime = DateTime.parse(prev_data[-3] + prev_data[-2])
+    compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
+    if compare
+      current = "# Current Diagnostics: #{DateTime.parse(issue_date + issue_time).strftime("%Y-%m-%d %H:%M:%S")}\n#{diag_out.join('\n')}"
+      previous = "# Previous Diagnostics: #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}\n#{File.read(prev_report_from_user)}"
+      diff_to_prev = `diff -y --width=#{`tput cols`.to_i} <(echo -e '#{current}') <(echo -e '#{previous}')`
+      IO.popen("less", "w") { |f| f.puts diff_to_prev }
+    end
   end
 end
 
