@@ -37,14 +37,16 @@ issuedirs.each do |issue|
     issues[issue]['questions'] = YAML.load_file("#{issuedir}/questions.yaml")
   end
 end
-my_issue = prompt.select("What issue would you like to report?") do |menu| 
+my_issue_dir = prompt.select("What issue would you like to report?") do |menu| 
   issues.each.map {|dir,data| menu.choice "#{data['title']} (#{data['desc']})", dir}
 end
 
+my_issue = issues[my_issue_dir]
+
 # Ask additional questions
 diag_vars = {}
-if issues[my_issue].key?('questions') then
-  issues[my_issue]['questions'].each do |question|
+if my_issue.key?('questions') then
+  my_issue['questions'].each do |question|
     case question['type']
     when "boolean"
       answer = prompt.yes?(question['question'])
@@ -70,7 +72,7 @@ general_scripts.each do |script|
 end
 
 ## Issue specific
-issue_script = "#{issuesdir}/#{my_issue}/diagnostics.bash"
+issue_script = "#{issuesdir}/#{my_issue_dir}/diagnostics.bash"
 
 diag_vars.each do |key, val|
   ENV[key] = val
@@ -78,25 +80,29 @@ end
 
 issue_script_out = `bash #{issue_script} 2>&1`
 
-# Feedback to user
-logfile = "#{logdir}/.user-report-#{my_issue}-#{username}-#{issue_time}.log"
-confirm = false
-until confirm
-  report = prompt.yes?("Would you like to report this?", default: false)
-  confirm = prompt.yes?("Are you sure?", default: false)
+## Combine diagnostics
+diag_out = general_script_outputs + [issue_script_out]
+
+# Show diagnostics to user
+view = prompt.yes?("Would you like to view diagnostics?", default: false)
+if view
+  IO.popen("less", "w") { |f| f.puts diag_out }
 end
 
-if confirm
-  puts "Logging to #{logfile}"
-else
+# Feedback to user
+logfile = "#{logdir}/.user-report-#{my_issue_dir}-#{username}-#{issue_time}.log"
+confirm = false
+until confirm
+  report = prompt.yes?("Would you like to send diagnostics report for '#{my_issue['title']}' to admin?", default: false)
+  confirm = prompt.yes?("  Are you sure?", default: false)
+end
+
+if ! report
   puts "Not reporting, thank you for your time"
   exit
 end
 
 # Log report
-general_script_outputs.each do |out|
-  File.write(logfile, out, mode: 'a+')
-end
-File.write(logfile, issue_script_out, mode: 'a+')
+File.write(logfile, diag_out, mode: 'a+')
 
 puts "Log reported, thank you for your time"
