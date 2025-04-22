@@ -104,7 +104,9 @@ if File.file?(prev_report_from_user)
   prev_datetime = DateTime.parse(prev_data[-3] + prev_data[-2])
   compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
   if compare
-    diff_to_prev = `diff -y --width=#{`tput cols`.to_i} <(echo -e '# Current Diagnostics: #{DateTime.parse(issue_date + issue_time).strftime("%Y-%m-%d %H:%M:%S")}\n#{diag_out}') <(echo -e 'Previous Diagnostics: #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}\n#{File.read(prev_report_from_user)}')`
+    current = "# Current Diagnostics: #{DateTime.parse(issue_date + issue_time).strftime("%Y-%m-%d %H:%M:%S")}\n#{diag_out.join('\n')}"
+    previous = "# Previous Diagnostics: #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}\n#{File.read(prev_report_from_user)}"
+    diff_to_prev = `diff -y --width=#{`tput cols`.to_i} <(echo -e '#{current}') <(echo -e '#{previous}')`
     IO.popen("less", "w") { |f| f.puts diff_to_prev }
   end
 end
