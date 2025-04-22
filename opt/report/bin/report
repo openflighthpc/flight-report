@@ -3,15 +3,16 @@
 # Requirements
 require "tty-prompt"
 require "yaml"
+require "date"
 
 # Initialise Variables
 report_dir = File.expand_path(File.join(__FILE__,'../../'))
 
 username = ENV['USER']
-issue_time = Time.now.strftime("%Y%m%d-%H%M%S")
+issue_date = Time.now.strftime("%Y%m%d")
+issue_time = Time.now.strftime("%H%M%S")
 
 logdir = report_dir + '/var/reports'
-logfile = "#{logdir}/.user-report-#{username}-#{issue_time}.log"
 
 issues = {}
 issuesdir = report_dir + '/etc/issues'
@@ -20,14 +21,14 @@ issuesdir = report_dir + '/etc/issues'
 prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
 # Check with user
-report = prompt.yes?('Would you like to report an issue?', default: false) 
-if ! report 
+report = prompt.yes?('Would you like to report an issue?', default: false)
+if ! report
   puts "Not reporting anything."
   exit
 end
 
 # Select issue
-## Identify issues by directory name so we can run scripts and things from in there 
+## Identify issues by directory name so we can run scripts and things from in there
 issuedirs = Dir.entries(issuesdir).select{|dir| !(dir == '.' || dir == '..' || dir == 'general')}
 ## Create a map of all the issue directories and their metadata+questions
 issuedirs.each do |issue|
@@ -37,7 +38,7 @@ issuedirs.each do |issue|
     issues[issue]['questions'] = YAML.load_file("#{issuedir}/questions.yaml")
   end
 end
-my_issue_dir = prompt.select("What issue would you like to report?") do |menu| 
+my_issue_dir = prompt.select("What issue would you like to report?") do |menu|
   issues.each.map {|dir,data| menu.choice "#{data['title']} (#{data['desc']})", dir}
 end
 
@@ -74,11 +75,13 @@ end
 ## Issue specific
 issue_script = "#{issuesdir}/#{my_issue_dir}/diagnostics.bash"
 
-diag_vars.each do |key, val|
-  ENV[key] = val
-end
+if File.file?(issue_script)
+  diag_vars.each do |key, val|
+    ENV[key] = val
+  end
 
-issue_script_out = `bash #{issue_script} 2>&1`
+  issue_script_out = `bash #{issue_script} 2>&1`
+end
 
 ## Combine diagnostics
 diag_out = general_script_outputs + [issue_script_out]
@@ -89,20 +92,35 @@ if view
   IO.popen("less", "w") { |f| f.puts diag_out }
 end
 
-# Feedback to user
-logfile = "#{logdir}/.user-report-#{my_issue_dir}-#{username}-#{issue_time}.log"
+# Compare to previous
+prev_report_from_user = Dir.glob("#{logdir}/.user-report-#{my_issue_dir}-#{username}*.log").last
+
+if File.file?(prev_report_from_user)
+  # Identify metadata from filename of previous report
+  ## Array of ["", "user", "report", ISSUE_NAME, USERNAME, DATE, TIME, "log"]
+  prev_data = File.basename(prev_report_from_user).split(/[-,.]/)
+  prev_datetime = DateTime.parse(prev_data[-3] + prev_data[-2])
+  compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
+  if compare
+    diff_to_prev = `diff -y --width=#{`tput cols`.to_i} <(echo -e '# Current Diagnostics: #{DateTime.parse(issue_date + issue_time).strftime("%Y-%m-%d %H:%M:%S")}\n#{diag_out}') <(echo -e 'Previous Diagnostics: #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}\n#{File.read(prev_report_from_user)}')`
+    IO.popen("less", "w") { |f| f.puts diff_to_prev }
+  end
+end
+
+# Logging diagnostics
+logfile = "#{logdir}/.user-report-#{my_issue_dir}-#{username}-#{issue_date}-#{issue_time}.log"
 confirm = false
 until confirm
   report = prompt.yes?("Would you like to send diagnostics report for '#{my_issue['title']}' to admin?", default: false)
   confirm = prompt.yes?("  Are you sure?", default: false)
 end
 
-if ! report
+if report
+  File.open(logfile, 'a+') do |f|
+    f.puts(diag_out)
+  end
+  puts "Log reported, thank you for your time"
+else
   puts "Not reporting, thank you for your time"
   exit
 end
-
-# Log report
-File.write(logfile, diag_out, mode: 'a+')
-
-puts "Log reported, thank you for your time"
