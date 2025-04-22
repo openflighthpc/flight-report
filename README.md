@@ -8,18 +8,29 @@ This is a script meant to be integrated with the Flight Environment. The scripts
 
 An example of putting the files in place and installing dependencies (as root):
 ```
+# Clone repository
 git clone https://github.com/openflighthpc/flight-report /tmp/flight-report
 
+# Copy files into place
 cp -r /tmp/flight-report/opt $flight_ROOT/
 cp -r /tmp/flight-report/libexec $flight_ROOT/
-mkdir -p $flight_ROOT/opt/report/var/reports
 
+# Create log directory and make it writeable by all users
+mkdir -p $flight_ROOT/opt/report/var/reports
+chmod 777 $flight_ROOT/opt/report/var/reports
+
+# Install ruby dependencies
 cd $flight_ROOT/opt/report/
 $flight_ROOT/bin/bundle config set --local path vendor
 $flight_ROOT/bin/bundle install
+
+# Remove git repo
+rm -rf /tmp/flight-report
 ```
 
+## Updating
 
+To update the CLI tool simply clone the repository and copy the files into place again, overwriting the existing ones. 
 # File Structure
 
 - `opt/report/etc/issues/`: Location of content for this command, this is where issues and specific diagnostics are defined
@@ -65,12 +76,11 @@ To add an issue:
 
 The CLI is interactive so the user simply needs to run `flight report` and answer the questions in order to complete a report.
 
-## Admin
-
-- Possibilities for collating and contrasting reports
-- Admin command that can summarise what has been reported in past hour / 24 hours /
-
 # To Do 
 
 - Locate and compare this report to a previous one of the same type (by the same user?)
-
+- Safely handle report saving such that users cannot delete existing report
+    - Separate the reporting CLI and the diagnostic execution+saving (pinging to an API server) 
+- Admin tools
+    - Possibilities for collating and contrasting reports
+    - Admin command that can summarise what has been reported in past hour / 24 hours /
