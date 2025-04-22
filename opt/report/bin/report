@@ -97,7 +97,7 @@ end
 # Compare to previous
 prev_report_from_user = Dir.glob("#{logdir}/.user-report-#{my_issue_dir}-#{username}*.log").last
 
-if File.file?(prev_report_from_user)
+if prev_report_from_user && File.file?(prev_report_from_user)
   # Identify metadata from filename of previous report
   ## Array of ["", "user", "report", ISSUE_NAME, USERNAME, DATE, TIME, "log"]
   prev_data = File.basename(prev_report_from_user).split(/[-,.]/)
