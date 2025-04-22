@@ -1,0 +1,10 @@
+: '
+: NAME: report
+: SYNOPSIS: Report issues with your HPC environment
+: VERSION: 1.1.0
+: ROOT: false
+: '
+export FLIGHT_CWD="$(pwd)"
+cd $flight_ROOT/opt/report
+export FLIGHT_PROGRAM_NAME="${flight_NAME} $(basename $0)"
+flexec bundle exec bin/report "$@"
