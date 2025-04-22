@@ -4,7 +4,21 @@ A CLI tool for users to report suspected issues with their HPC environment.
 
 # Install
 
-This is a script meant to be integrated with the Flight Environment. The scripts in this directory correspond to where they should go in relation to `$flight_ROOT` (e.g. `libexec/commands/report` should be placed at `/opt/flight/libexec/commands/report`)
+This is a script meant to be integrated with the Flight Environment. The scripts in this directory correspond to where they should go in relation to `$flight_ROOT` (e.g. `libexec/commands/report` should be placed at `/opt/flight/libexec/commands/report` in a default flight environment setup).
+
+An example of putting the files in place and installing dependencies (as root):
+```
+git clone https://github.com/openflighthpc/flight-report /tmp/flight-report
+
+cp -r /tmp/flight-report/opt $flight_ROOT/
+cp -r /tmp/flight-report/libexec $flight_ROOT/
+mkdir -p $flight_ROOT/var/reports
+
+cd $flight_ROOT/opt/report/
+$flight_ROOT/bin/bundle config set --local path vendor
+$flight_ROOT/bin/bundle install
+```
+
 
 # File Structure
 
