@@ -31,7 +31,23 @@ $flight_ROOT/bin/bundle install
 rm -rf /tmp/flight-report
 ```
 
-## Add to "Flight Tips"
+## [Optional] Add to "Flight Banner"
+
+The Flight Environment can include messages in the banner program (when enabled), to add a banner message with a call-to-action for `flight report`, create the file `$flight_ROOT/etc/banner/banner.d/30-report.sh` containing the following:
+```bash
+(
+  bold="$(tput bold)"
+  clr="$(tput sgr0)"
+  if [[ $TERM =~ "256color" ]]; then
+    bgblue="$(tput setab 68)"
+  fi
+  echo -e "EXPERIENCING PROBLEMS?\n"
+  printf "  ${bold}${bgblue}flight report${clr} to log your issue\n"
+  echo
+)
+```
+
+## [Optional] Add to "Flight Tips"
 
 The Flight Environment can have a "Flight Tips" section which is displayed on login to the system. To add `flight report` to the tips list create file `$flight_ROOT/etc/banner/tips.d/50-report.rc` containing the following:
 ```bash
@@ -91,6 +107,9 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 
 # To Do 
 
+- User report management
+    - See what issues they've reported, how often, etc
+    - Let them view whatever previous reports of theirs they want (and compare 2 for an issue type) 
 - Safely handle report saving such that users cannot delete existing reports
     - Separate the reporting CLI and the diagnostic execution+saving (pinging to an API server) 
     - Input validation to ensure text fields can't be used for injection attacks
