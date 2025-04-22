@@ -5,14 +5,16 @@ require "tty-prompt"
 require "yaml"
 
 # Initialise Variables
+report_dir = File.expand_path(File.join(__FILE__,'../../'))
+
 username = ENV['USER']
 issue_time = Time.now.strftime("%Y%m%d-%H%M%S")
 
-logdir = 'var/reports'
+logdir = report_dir + '/var/reports'
 logfile = "#{logdir}/.user-report-#{username}-#{issue_time}.log"
 
 issues = {}
-issuesdir = 'opt/report/etc/issues'
+issuesdir = report_dir + '/etc/issues'
 
 # Create prompt
 prompt = TTY::Prompt.new(active_color: :blue)
