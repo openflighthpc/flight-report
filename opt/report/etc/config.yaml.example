@@ -1,0 +1,10 @@
+# Set whether user is initially asked if they want to report an issue.
+#
+# When true will go straight to selecting issue type
+always_report: true
+
+# Set whether user is asked to confirm if they want to send (save) the diagnostic
+# report they've run.
+#
+# When true it will always save to var/reports
+always_send: true

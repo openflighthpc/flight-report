@@ -15,6 +15,10 @@ git clone https://github.com/openflighthpc/flight-report /tmp/flight-report
 cp -r /tmp/flight-report/opt $flight_ROOT/
 cp -r /tmp/flight-report/libexec $flight_ROOT/
 
+# Configure CLI tool 
+## Open and edit the file to change defaults
+cp $flight_ROOT/opt/report/etc/config.yaml.example $flight_ROOT/opt/report/etc/config.yaml
+
 # Ensure log directory is writeable by all users
 chmod 777 $flight_ROOT/opt/report/var/reports
 
@@ -77,9 +81,11 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 
 # To Do 
 
+- Add instructions for adding to "Flight Tips"
 - Locate and compare this report to a previous one of the same type (by the same user?)
-- Safely handle report saving such that users cannot delete existing report
+- Safely handle report saving such that users cannot delete existing reports
     - Separate the reporting CLI and the diagnostic execution+saving (pinging to an API server) 
+    - Input validation to ensure text fields can't be used for injection attacks
 - Admin tools
     - Possibilities for collating and contrasting reports
-    - Admin command that can summarise what has been reported in past hour / 24 hours /
+    - Admin command that can summarise what has been reported in past hour / 24 hours / week

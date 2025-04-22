@@ -17,14 +17,23 @@ logdir = report_dir + '/var/reports'
 issues = {}
 issuesdir = report_dir + '/etc/issues'
 
+config = report_dir + '/etc/config.yaml'
+
+# Config options
+if File.file?(config)
+  config = YAML.load_file("#{report_dir}/etc/config.yaml") || nil
+end
+
 # Create prompt
 prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
 # Check with user
-report = prompt.yes?('Would you like to report an issue?', default: false)
-if ! report
-  puts "Not reporting anything."
-  exit
+if ! config['always_report'] 
+  report = prompt.yes?('Would you like to report an issue?', default: false)
+  if ! report
+    puts "Not reporting anything."
+    exit
+  end
 end
 
 # Select issue
@@ -113,7 +122,12 @@ end
 
 # Logging diagnostics
 logfile = "#{logdir}/.user-report-#{my_issue_dir}-#{username}-#{issue_date}-#{issue_time}.log"
-confirm = false
+if ! config['always_send']
+  confirm = false
+else
+  confirm = true
+  report = true
+end
 until confirm
   report = prompt.yes?("Would you like to send diagnostics report for '#{my_issue['title']}' to admin?", default: false)
   confirm = prompt.yes?("  Are you sure?", default: false)
