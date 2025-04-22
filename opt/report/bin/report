@@ -2,6 +2,7 @@
 
 # Requirements
 require "tty-prompt"
+require "tty-spinner"
 require "yaml"
 require "date"
 
@@ -74,7 +75,8 @@ if my_issue.key?('questions') then
 end
 
 # Run diagnostics
-prompt.ok("Running diagnostics...")
+spinner = TTY::Spinner.new(":spinner Running diagnostics ...", format: :bouncing_ball)
+spinner.auto_spin
 
 general_scripts = Dir.glob("#{issuesdir}/general/*.bash")
 ## General scripts
@@ -93,6 +95,10 @@ if File.file?(issue_script)
 
   issue_script_out = `bash #{issue_script} 2>&1`
 end
+
+## Wait for grace period
+sleep(config['diagnostics_grace_period'] || 0)
+spinner.stop("Done!")
 
 ## Combine diagnostics
 diag_out = general_script_outputs + [issue_script_out]
