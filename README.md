@@ -31,9 +31,19 @@ $flight_ROOT/bin/bundle install
 rm -rf /tmp/flight-report
 ```
 
+## Add to "Flight Tips"
+
+The Flight Environment can have a "Flight Tips" section which is displayed on login to the system. To add `flight report` to the tips list create file `$flight_ROOT/etc/banner/tips.d/50-report.rc` containing the following:
+```bash
+flight_TIP_command="flight report"
+flight_TIP_synopsis="report issues with your HPC environment"
+flight_TIP_root="false"
+```
+
 ## Updating
 
 To update the CLI tool simply clone the repository and copy the files into place again, overwriting the existing ones. 
+
 # File Structure
 
 - `opt/report/etc/issues/`: Location of content for this command, this is where issues and specific diagnostics are defined
@@ -81,8 +91,6 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 
 # To Do 
 
-- Add instructions for adding to "Flight Tips"
-- Locate and compare this report to a previous one of the same type (by the same user?)
 - Safely handle report saving such that users cannot delete existing reports
     - Separate the reporting CLI and the diagnostic execution+saving (pinging to an API server) 
     - Input validation to ensure text fields can't be used for injection attacks
