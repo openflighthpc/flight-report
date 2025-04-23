@@ -64,10 +64,11 @@ To update the CLI tool simply clone the repository and copy the files into place
 
 - `opt/report/etc/issues/`: Location of content for this command, this is where issues and specific diagnostics are defined
 - `opt/report/etc/issues/general/*.bash`: These diagnostics are run for every issue (in alphanumeric order)
+- `opt/report/etc/issues/general/metrics.yaml`: These metrics are checked for every issue
 
 # Adding Content
 
-The tool presents `Issues` to a user and these Issues can have related `Diagnostics`. This allows for different date to be collected in different circumstances.
+The tool presents `Issues` to a user. These Issues can have related `Diagnostics` and `Metrics`. This allows for different data to be collected in different circumstances.
 
 To add an issue:
 - Create a directory for the issue in `opt/report/etc/issues/`
@@ -97,7 +98,34 @@ To add an issue:
     ```
 - Create file `diagnostics.bash` for any additional diagnostics to be run
     - The answers to questions for this issue will be available to the script by their corresponding `var:` value
-
+- Create file `metrics.yaml` to execute commands that are compared to values to determine if metric is okay or not
+    ```yaml
+    - id: output-less-than
+      name: "Output Less Than"
+      cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+      value: 1.0
+      type: 'lt'
+    - id: output-greater-than
+      name: "Output Greater Than"
+      cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+      value: 1.0
+      type: 'gt'
+    - id: output-equals
+      name: "Output Equals"
+      cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+      value: 1.0
+      type: 'equals'
+    - id: string-check
+      name: "Comparing Strings"
+      cmd: "grep '^VERSION=' /etc/os-release"
+      value: 'VERSION="9.3 (Blue Onyx)"'
+      type: 'matches'
+    ```
+    - The answers to questions for this issue will be available to the commands by their corresponding `var:` value
+    - Notes on restrictions:
+        - `gt`, `lt` and `equals` convert the output to a floating point number to compare with `value`
+        - `matches` compares the output to a string
+            - Multiline values will almost definitely not work
 
 # Using the CLI
 
@@ -116,3 +144,4 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 - Admin tools
     - Possibilities for collating and contrasting reports
     - Admin command that can summarise what has been reported in past hour / 24 hours / week
+- Support General questions for setting env vars
