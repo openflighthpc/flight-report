@@ -9,6 +9,8 @@ require "date"
 # Initialise Variables
 report_dir = File.expand_path(File.join(__FILE__,'../../'))
 
+require_relative "#{report_dir}/lib/metrics"
+
 username = ENV['USER']
 issue_date = Time.now.strftime("%Y%m%d")
 issue_time = Time.now.strftime("%H%M%S")
@@ -74,6 +76,41 @@ if my_issue.key?('questions') then
   end
 end
 
+# Check metrics
+spinner = TTY::Spinner.new(":spinner Checking metrics ...", format: :bouncing_ball)
+spinner.auto_spin
+
+## Run general metrics
+general_metrics_file = "#{issuesdir}/general/metrics.yaml"
+metrics_out = {}
+
+if File.file?(general_metrics_file)
+  metrics_out.merge!(check_metrics(general_metrics_file))
+end
+
+## Run issue-specific metrics
+issue_metrics_file = "#{issuesdir}/#{my_issue_dir}/metrics.yaml"
+
+if File.file?(issue_metrics_file)
+  diag_vars.each do |key, val|
+    ENV[key] = val
+  end
+  metrics_out.merge!(check_metrics(issue_metrics_file))
+end
+
+## Wait for grace period
+sleep(config['metric_grace_period'] || 0)
+
+## Tell user pass/fail of metrics
+failures = metrics_out.find_all{ |m, d| d[:success] == false }
+if failures.count == 0
+  spinner.success("All Checks Passed")
+else
+  spinner.error("#{failures.count}/#{metrics_out.count} Checks Failed")
+end
+
+## TODO: Save metrics
+
 # Run diagnostics
 spinner = TTY::Spinner.new(":spinner Running diagnostics ...", format: :bouncing_ball)
 spinner.auto_spin
@@ -98,7 +135,7 @@ end
 
 ## Wait for grace period
 sleep(config['diagnostic_grace_period'] || 0)
-spinner.stop("Done!")
+spinner.success("Done!")
 
 ## Combine diagnostics
 diag_out = general_script_outputs + [issue_script_out]
