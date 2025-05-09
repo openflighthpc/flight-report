@@ -15,7 +15,22 @@ def check_metrics(metrics_file)
     when 'matches'
       metric_success = metric_out == metric['value']
     end
-    metrics_out[metric['id']] = {'output': metric_out, 'check': "#{metric['type']}: #{metric['value']}", 'success': metric_success}
+    metrics_out[metric['id']] = metric.merge({'output'=> metric_out, 'check'=> "#{metric['type']}: #{metric['value']}", 'success'=> metric_success})
   end
   return metrics_out
+end
+
+def failed_metrics(metrics)
+  failures = metrics.find_all{ |m, d| d['success'] == false }
+  return failures.count, failures
+end
+
+def report_metrics_detail(metrics)
+  metrics.each do |metric, data|
+    if data['success'] == true
+      puts "  🟢 #{data['name']}"
+    else
+      puts "  🟠 #{data['name']}"
+    end
+  end
 end
