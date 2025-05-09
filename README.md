@@ -174,7 +174,13 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 - Safely handle report saving such that users cannot delete existing reports
     - Separate the reporting CLI and the diagnostic execution+saving (pinging to an API server) 
     - Input validation to ensure text fields can't be used for injection attacks
-- Admin tools
+- Alces & Site Admin tools
     - Possibilities for collating and contrasting reports
     - Admin command that can summarise what has been reported in past hour / 24 hours / week
-- Support General questions for setting env vars
+- Support 'General' questions for setting env vars
+- Other
+    - Report historic issue (e.g. not experiencing right now)
+    - Allow questions with assisted answers (e.g. using commands to populate selection)
+    - Alces Admins can drop notifications/information/insights into the tool for Site Admins
+    - Advisory actions for users based on the problems they're experiencing ("sometimes high disk usage can impact performance, especially with network arrays, if the usage is high due to many workloads running try transferring your workload to scratch before executing it")
+    - AI chatbot?? 
