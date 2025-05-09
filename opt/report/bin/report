@@ -102,11 +102,12 @@ end
 sleep(config['metric_grace_period'] || 0)
 
 ## Tell user pass/fail of metrics
-failures = metrics_out.find_all{ |m, d| d[:success] == false }
-if failures.count == 0
+failcount, failmetrics = failed_metrics(metrics_out)
+if failcount == 0
   spinner.success("All Checks Passed")
 else
-  spinner.error("#{failures.count}/#{metrics_out.count} Checks Failed")
+  spinner.error("Warning with #{failcount}/#{metrics_out.count} Checks")
+  report_metrics_detail(metrics_out)
 end
 
 ## TODO: Save metrics
