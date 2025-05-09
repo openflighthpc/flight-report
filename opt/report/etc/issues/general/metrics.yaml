@@ -17,4 +17,4 @@
   name: "Comparing Strings"
   cmd: "grep '^VERSION=' /etc/os-release"
   value: 'VERSION="9.3 (Blue Onyx)"'
-  type: 'equal'
+  type: 'matches'
