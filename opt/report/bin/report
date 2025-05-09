@@ -29,11 +29,47 @@ end
 # Create prompt
 prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
+
+
+def log_rating(rating)
+  return
+end
+
+#
+# Stage 0: Log that someone has actually used this
+#
+
+
+
+#
+# Stage 1: Traffic Light Response Rating
+#
+
+smileys = {"😀": 2, "😐": 1, "☹️": 0}
+happy = prompt.select("How was your experience?", smileys)
+
+if happy == 2
+  log_rating
+  puts "Thank you for time! Your response has been recorded"
+  exit
+end
+
+
+#
+# Stage 2: Selecting Issue
+#
+
+
+
+
+
+
 # Check with user
 if ! config['always_report'] 
   yes = prompt.yes?('Would you like to report an issue?', default: false)
   if ! yes
-    puts "Not reporting anything."
+    log_rating
+    puts "Thank you for time! Your response has been recorded"
     exit
   end
 end
