@@ -1,1 +1,3 @@
+opt/report/var/accesslogs/.user*
+opt/report/var/ratings/.user*
 opt/report/var/reports/.user*

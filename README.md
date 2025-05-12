@@ -19,7 +19,9 @@ cp -r /tmp/flight-report/libexec $flight_ROOT/
 ## Open and edit the file to change defaults
 cp $flight_ROOT/opt/report/etc/config.yaml.example $flight_ROOT/opt/report/etc/config.yaml
 
-# Ensure log directory is writeable by all users
+# Ensure log directories are writeable by all users
+chmod 777 $flight_ROOT/opt/report/var/accesslogs
+chmod 777 $flight_ROOT/opt/report/var/ratings
 chmod 777 $flight_ROOT/opt/report/var/reports
 
 # Install ruby dependencies
@@ -129,6 +131,14 @@ To add an issue:
 
 # Outputs
 
+## Access Logs
+
+To see if anyone accesses the command, when they initially run `bin/report` a line will be added to a file named after the user under `var/accesslogs` with the time they launched the command.
+
+## Ratings
+
+The first thing the command asks for is a rating, this is from 0-2 but is represented in smilies. This rating is output to a file under `var/ratings`.
+
 ## Reports
 
 This tool generates a report which can be used to track, compare and understand issues within the environment. A report is a YAML file structured as follows:
@@ -174,7 +184,13 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 - Safely handle report saving such that users cannot delete existing reports
     - Separate the reporting CLI and the diagnostic execution+saving (pinging to an API server) 
     - Input validation to ensure text fields can't be used for injection attacks
-- Admin tools
+- Alces & Site Admin tools
     - Possibilities for collating and contrasting reports
     - Admin command that can summarise what has been reported in past hour / 24 hours / week
-- Support General questions for setting env vars
+- Support 'General' questions for setting env vars
+- Other
+    - Report historic issue (e.g. not experiencing right now)
+    - Allow questions with assisted answers (e.g. using commands to populate selection)
+    - Alces Admins can drop notifications/information/insights into the tool for Site Admins
+    - Advisory actions for users based on the problems they're experiencing ("sometimes high disk usage can impact performance, especially with network arrays, if the usage is high due to many workloads running try transferring your workload to scratch before executing it")
+    - AI chatbot?? 
