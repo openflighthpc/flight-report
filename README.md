@@ -131,6 +131,14 @@ To add an issue:
 
 # Outputs
 
+## Access Logs
+
+To see if anyone accesses the command, when they initially run `bin/report` a line will be added to a file named after the user under `var/accesslogs` with the time they launched the command.
+
+## Ratings
+
+The first thing the command asks for is a rating, this is from 0-2 but is represented in smilies. This rating is output to a file under `var/ratings`.
+
 ## Reports
 
 This tool generates a report which can be used to track, compare and understand issues within the environment. A report is a YAML file structured as follows:
