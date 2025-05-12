@@ -19,7 +19,9 @@ cp -r /tmp/flight-report/libexec $flight_ROOT/
 ## Open and edit the file to change defaults
 cp $flight_ROOT/opt/report/etc/config.yaml.example $flight_ROOT/opt/report/etc/config.yaml
 
-# Ensure log directory is writeable by all users
+# Ensure log directories are writeable by all users
+chmod 777 $flight_ROOT/opt/report/var/accesslogs
+chmod 777 $flight_ROOT/opt/report/var/ratings
 chmod 777 $flight_ROOT/opt/report/var/reports
 
 # Install ruby dependencies

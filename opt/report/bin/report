@@ -7,39 +7,38 @@ require "yaml"
 require "date"
 
 # Initialise Variables
-report_dir = File.expand_path(File.join(__FILE__,'../../'))
+app_dir = File.expand_path(File.join(__FILE__,'../../'))
 
-require_relative "#{report_dir}/lib/metrics"
-require_relative "#{report_dir}/lib/report"
+require_relative "#{app_dir}/lib/metrics"
+require_relative "#{app_dir}/lib/report"
 
-logdir = report_dir + '/var/reports'
+accesslogsdir = app_dir + '/var/accesslogs'
+reportsdir = app_dir + '/var/reports'
+ratingsdir = app_dir + '/var/ratings'
 
 issues = {}
-issuesdir = report_dir + '/etc/issues'
+issuesdir = app_dir + '/etc/issues'
 
-config = report_dir + '/etc/config.yaml'
+config = app_dir + '/etc/config.yaml'
 
 report = Report.new
 
 # Config options
 if File.file?(config)
-  config = YAML.load_file("#{report_dir}/etc/config.yaml") || nil
+  config = YAML.load_file("#{app_dir}/etc/config.yaml") || nil
 end
 
 # Create prompt
 prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
-
-
-def log_rating(rating)
-  return
-end
-
 #
 # Stage 0: Log that someone has actually used this
 #
 
-
+accesslogfile = "#{accesslogsdir}/.user-access-#{report.log['meta']['username']}"
+File.open(accesslogfile, 'a+') do |f|
+  f.puts("#{report.log['meta']['username']} ran the command at #{DateTime.parse(report.log['meta']['reported_at']).strftime("%Y-%m-%d %H:%M:%S")}")
+end
 
 #
 # Stage 1: Traffic Light Response Rating
@@ -47,28 +46,26 @@ end
 
 smileys = {"😀": 2, "😐": 1, "☹️": 0}
 happy = prompt.select("How was your experience?", smileys)
+report.log['meta']['rating'] = happy
+
+ratingfile = "#{ratingsdir}/#{report.ratingfilename}"
+File.open(ratingfile, 'a+') do |f|
+  f.puts(report.log['meta']['rating'])
+end
 
 if happy == 2
-  log_rating
   puts "Thank you for time! Your response has been recorded"
   exit
 end
-
 
 #
 # Stage 2: Selecting Issue
 #
 
-
-
-
-
-
 # Check with user
 if ! config['always_report'] 
   yes = prompt.yes?('Would you like to report an issue?', default: false)
   if ! yes
-    log_rating
     puts "Thank you for time! Your response has been recorded"
     exit
   end
@@ -202,7 +199,7 @@ end
 # Compare to previous
 if ! config['hide_compare']
   # TODO: Identify latest by 'issue_at' time
-  prev_report_from_user = Dir.glob("#{logdir}/.user-report-#{my_issue_dir}-#{report.log['meta']['username']}*.log").last
+  prev_report_from_user = Dir.glob("#{reportsdir}/.user-report-#{my_issue_dir}-#{report.log['meta']['username']}*.log").last
 
   if prev_report_from_user && File.file?(prev_report_from_user)
     # Identify metadata from filename of previous report
@@ -220,7 +217,7 @@ if ! config['hide_compare']
 end
 
 # Logging diagnostics
-logfile = "#{logdir}/#{report.logname}"
+logfile = "#{reportsdir}/#{report.reportfilename}"
 if ! config['always_send']
   yesconfirm = false
 else

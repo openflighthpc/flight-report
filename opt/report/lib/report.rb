@@ -16,7 +16,8 @@ class Report
           'issue_id' => nil,
           'username' => username,
           'reported_at' => Time.now.strftime("%Y%m%dT%H%M%S"),
-          'issue_at' => "#{issue_date}T#{issue_time}"
+          'issue_at' => "#{issue_date}T#{issue_time}",
+          'rating' => nil
         },
         'diagnostics' => {
           'general' => {},
@@ -31,7 +32,11 @@ class Report
     end
   end
 
-  def logname
+  def ratingfilename
+    return ".user-rating-#{@log['meta']['username']}-#{@log['meta']['issue_at'].split('T').join('-')}.log"
+  end
+
+  def reportfilename
     return ".user-report-#{@log['meta']['issue_id']}-#{@log['meta']['username']}-#{@log['meta']['issue_at'].split('T').join('-')}.log"
   end
 
