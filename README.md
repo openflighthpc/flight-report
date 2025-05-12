@@ -127,6 +127,39 @@ To add an issue:
         - `matches` compares the output to a string
             - Multiline values will almost definitely not work
 
+# Outputs
+
+## Reports
+
+This tool generates a report which can be used to track, compare and understand issues within the environment. A report is a YAML file structured as follows:
+```yaml
+meta: 
+  issue_id: ISSUE_ID
+  user: USERNAAME
+  reported_at: DATE_AND_TIME_COMMAND_RUN
+  issue_at: DATE_AND_TIME_OF_ISSUE
+diagnostics:
+  general: 
+    SCRIPT_NAME:
+      script_md5: MD5SUM_OF_SCRIPT # to ensure that the outputs can be compared because script structure hasn't changed
+      output: |
+        Multiline output
+        from the script
+  issue: 
+    script_md5: MD5SUM_OF_SCRIPT # to ensure that the outputs can be compared because script structure hasn't changed
+    answers: 
+      VAR: ANSWER
+      VAR: ANSWER
+      VAR: ANSWER
+    output: |
+      Multiline output
+      from the script
+metrics:
+  METRIC_ID: # Entire metric metadata including name, command, output, comparison type, success true/false
+  METRIC_ID: # Entire metric metadata including name, command, output, comparison type, success true/false
+  METRIC_ID: # Entire metric metadata including name, command, output, comparison type, success true/false
+```
+
 # Using the CLI
 
 ## User
