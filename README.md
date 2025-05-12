@@ -208,6 +208,5 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 - Other
     - Report historic issue (e.g. not experiencing right now)
     - Allow questions with assisted answers (e.g. using commands to populate selection)
-    - Alces Admins can drop notifications/information/insights into the tool for Site Admins
     - Advisory actions for users based on the problems they're experiencing ("sometimes high disk usage can impact performance, especially with network arrays, if the usage is high due to many workloads running try transferring your workload to scratch before executing it")
     - AI chatbot?? 

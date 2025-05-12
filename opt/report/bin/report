@@ -64,20 +64,35 @@ end
 #
 # Stag 2: Display Status Updates
 #
+
+# Status reports
 statuses = Dir.glob("#{statusesdir}/*.yaml")
-statuses.each do |status|
-  data = YAML.load_file(status)
-  case data['type']
-  when 'warning'
-    icon = "⚠️"
-  when 'working'
-    icon = "✅"
-  when *
-    icon = "ℹ️"
+if statuses.count > 0
+  puts
+  puts "Status Updates:"
+  statuses.each do |status|
+    data = YAML.load_file(status)
+    case data['type']
+    when 'warning'
+      icon = "⚠️"
+    when 'working'
+      icon = "✅"
+    when *
+      icon = "ℹ️"
+    end
+    puts "#{icon} #{data['message']}"
   end
-  puts "#{icon} #{data['message']}"
 end
 
+# Cumulative ratings
+recent_ratings = Dir.glob("#{ratingsdir}/.user-rating-*.log").select {|f| File.mtime(f) > (Time.now - 3600) }.map{ |f| File.read(f).strip}
+
+puts
+puts "Ratings (Last Hour)"
+puts "😀 #{recent_ratings.tally["2"]}"
+puts "😐 #{recent_ratings.tally["1"]}" 
+puts "☹️ #{recent_ratings.tally["0"]}"
+puts
 
 #
 # Stage 3: Selecting Issue
