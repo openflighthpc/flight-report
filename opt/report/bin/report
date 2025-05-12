@@ -19,6 +19,9 @@ ratingsdir = app_dir + '/var/ratings'
 issues = {}
 issuesdir = app_dir + '/etc/issues'
 
+statuses = {}
+statusesdir = app_dir + '/etc/statuses'
+
 config = app_dir + '/etc/config.yaml'
 
 report = Report.new
@@ -59,7 +62,23 @@ if happy == 2
 end
 
 #
-# Stage 2: Selecting Issue
+# Stag 2: Display Status Updates
+#
+statuses = Dir.glob("#{statusesdir}/*.yaml")
+statuses.each do |status|
+  data = YAML.load_file(status)
+  case data['type']
+  when 'warning'
+    icon = "⚠️"
+  when 'working'
+    icon = "✅"
+  end
+  puts "#{icon} #{data['message']}"
+end
+
+
+#
+# Stage 3: Selecting Issue
 #
 
 # Check with user
@@ -70,10 +89,6 @@ if ! config['always_report']
     exit
   end
 end
-
-#
-# Select issue
-#
 
 # Identify issues by directory name so we can run scripts and things from in there
 issuedirs = Dir.entries(issuesdir).select{|dir| !(dir == '.' || dir == '..' || dir == 'general')}
@@ -92,9 +107,7 @@ end
 my_issue = issues[my_issue_dir]
 report.log['meta']['issue_id'] = my_issue_dir
 
-#
 # Ask additional questions
-#
 diag_vars = {}
 if my_issue.key?('questions') then
   my_issue['questions'].each do |question|
@@ -116,7 +129,9 @@ end
 
 report.log['diagnostics']['issue']['answers'] = diag_vars
 
-# Check metrics
+#
+# Stage 4: Check metrics
+#
 spinner = TTY::Spinner.new(":spinner Checking metrics ...", format: :bouncing_ball)
 spinner.auto_spin
 
@@ -152,7 +167,9 @@ else
   report_metrics_detail(metrics_out)
 end
 
-# Run diagnostics
+#
+# Stage 5: Run diagnostics
+#
 spinner = TTY::Spinner.new(":spinner Running diagnostics ...", format: :bouncing_ball)
 spinner.auto_spin
 
@@ -196,7 +213,9 @@ if ! config['hide_diagnostics']
   end
 end
 
-# Compare to previous
+#
+# Stage 6: Compare to previous
+#
 if ! config['hide_compare']
   # TODO: Identify latest by 'issue_at' time
   prev_report_from_user = Dir.glob("#{reportsdir}/.user-report-#{my_issue_dir}-#{report.log['meta']['username']}*.log").last
@@ -216,7 +235,9 @@ if ! config['hide_compare']
   end
 end
 
-# Logging diagnostics
+#
+# Stage 7: Logging diagnostics
+# 
 logfile = "#{reportsdir}/#{report.reportfilename}"
 if ! config['always_send']
   yesconfirm = false

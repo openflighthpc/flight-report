@@ -70,6 +70,20 @@ To update the CLI tool simply clone the repository and copy the files into place
 
 # Adding Content
 
+## Statuses
+
+`Statuses` provide information about the system to a user describing the state of the system. 
+
+To add a status: 
+- Create a file named after the status in `opt/report/etc/statuses`, for example, `network.yaml`:
+    ```yaml
+    type: warning
+    message: "Network: We are aware of a network performance degradation which we are investigating"
+    ```
+    - Type can be one of `warning` or `working`, this will determine what emoji is displayed next to the message
+
+## Issues
+
 The tool presents `Issues` to a user. These Issues can have related `Diagnostics` and `Metrics`. This allows for different data to be collected in different circumstances.
 
 To add an issue:
