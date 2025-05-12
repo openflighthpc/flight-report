@@ -80,7 +80,10 @@ To add a status:
     type: warning
     message: "Network: We are aware of a network performance degradation which we are investigating"
     ```
-    - Type can be one of `warning` or `working`, this will determine what emoji is displayed next to the message
+    - Type determines the emoji that's displayed next to the message, it can be:
+        - `working`: ✅
+        - `warning`: ⚠️ 
+        - Anything else: ℹ️
 
 ## Issues
 

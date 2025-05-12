@@ -72,6 +72,8 @@ statuses.each do |status|
     icon = "⚠️"
   when 'working'
     icon = "✅"
+  when *
+    icon = "ℹ️"
   end
   puts "#{icon} #{data['message']}"
 end
