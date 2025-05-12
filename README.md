@@ -43,18 +43,18 @@ The Flight Environment can include messages in the banner program (when enabled)
   if [[ $TERM =~ "256color" ]]; then
     bgblue="$(tput setab 68)"
   fi
-  echo -e "EXPERIENCING PROBLEMS?\n"
-  printf "  ${bold}${bgblue}flight report${clr} to log your issue\n"
+  echo -e "HOW HAS YOUR HPC EXPERIENCE TODAY BEEN? LET US KNOW!"
+  printf "  ${bold}${bgblue}flight assist${clr} to get in touch\n"
   echo
 )
 ```
 
 ## [Optional] Add to "Flight Tips"
 
-The Flight Environment can have a "Flight Tips" section which is displayed on login to the system. To add `flight report` to the tips list create file `$flight_ROOT/etc/banner/tips.d/50-report.rc` containing the following:
+The Flight Environment can have a "Flight Tips" section which is displayed on login to the system. To add `flight assist` to the tips list create file `$flight_ROOT/etc/banner/tips.d/50-assist.rc` containing the following:
 ```bash
-flight_TIP_command="flight report"
-flight_TIP_synopsis="report issues with your HPC environment"
+flight_TIP_command="flight assist"
+flight_TIP_synopsis="Let us know how your experience with the HPC environment is"
 flight_TIP_root="false"
 ```
 
