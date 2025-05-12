@@ -1,0 +1,20 @@
+- id: output-less-than
+  name: "Output Less Than"
+  cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+  value: 1.0
+  type: 'lt'
+- id: output-greater-than
+  name: "Output Greater Than"
+  cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+  value: 1.0
+  type: 'gt'
+- id: output-equals
+  name: "Output Equals"
+  cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+  value: 1.0
+  type: 'equals'
+- id: string-check
+  name: "Comparing Strings"
+  cmd: "grep '^VERSION=' /etc/os-release"
+  value: 'VERSION="9.3 (Blue Onyx)"'
+  type: 'matches'

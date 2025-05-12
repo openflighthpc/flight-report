@@ -1,0 +1,5 @@
+- id: output-equals-var
+  name: "Output Less Than 2"
+  cmd: "echo $HOST"
+  value: "localhost"
+  type: 'matches'

@@ -3,6 +3,10 @@
 # When true will go straight to selecting issue type
 always_report: true
 
+# Set a grace period for metrics, this can allow for time for any remote commands or
+# parallel tasks to have a chance to finish before program proceeds
+metric_grace_period: 5
+
 # Set a grace period for diagnostics, this can allow for time for any remote commands or
 # parallel tasks to have a chance to finish before program proceeds
 diagnostic_grace_period: 5

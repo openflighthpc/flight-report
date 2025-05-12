@@ -64,10 +64,11 @@ To update the CLI tool simply clone the repository and copy the files into place
 
 - `opt/report/etc/issues/`: Location of content for this command, this is where issues and specific diagnostics are defined
 - `opt/report/etc/issues/general/*.bash`: These diagnostics are run for every issue (in alphanumeric order)
+- `opt/report/etc/issues/general/metrics.yaml`: These metrics are checked for every issue
 
 # Adding Content
 
-The tool presents `Issues` to a user and these Issues can have related `Diagnostics`. This allows for different date to be collected in different circumstances.
+The tool presents `Issues` to a user. These Issues can have related `Diagnostics` and `Metrics`. This allows for different data to be collected in different circumstances.
 
 To add an issue:
 - Create a directory for the issue in `opt/report/etc/issues/`
@@ -97,7 +98,67 @@ To add an issue:
     ```
 - Create file `diagnostics.bash` for any additional diagnostics to be run
     - The answers to questions for this issue will be available to the script by their corresponding `var:` value
+- Create file `metrics.yaml` to execute commands that are compared to values to determine if metric is okay or not
+    ```yaml
+    - id: output-less-than
+      name: "Output Less Than"
+      cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+      value: 1.0
+      type: 'lt'
+    - id: output-greater-than
+      name: "Output Greater Than"
+      cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+      value: 1.0
+      type: 'gt'
+    - id: output-equals
+      name: "Output Equals"
+      cmd: "uptime |sed 's/.*load averages: //g;s/ .*//g'"
+      value: 1.0
+      type: 'equals'
+    - id: string-check
+      name: "Comparing Strings"
+      cmd: "grep '^VERSION=' /etc/os-release"
+      value: 'VERSION="9.3 (Blue Onyx)"'
+      type: 'matches'
+    ```
+    - The answers to questions for this issue will be available to the commands by their corresponding `var:` value
+    - Notes on restrictions:
+        - `gt`, `lt` and `equals` convert the output to a floating point number to compare with `value`
+        - `matches` compares the output to a string
+            - Multiline values will almost definitely not work
 
+# Outputs
+
+## Reports
+
+This tool generates a report which can be used to track, compare and understand issues within the environment. A report is a YAML file structured as follows:
+```yaml
+meta: 
+  issue_id: ISSUE_ID
+  user: USERNAAME
+  reported_at: DATE_AND_TIME_COMMAND_RUN
+  issue_at: DATE_AND_TIME_OF_ISSUE
+diagnostics:
+  general: 
+    SCRIPT_NAME:
+      script_md5: MD5SUM_OF_SCRIPT # to ensure that the outputs can be compared because script structure hasn't changed
+      output: |
+        Multiline output
+        from the script
+  issue: 
+    script_md5: MD5SUM_OF_SCRIPT # to ensure that the outputs can be compared because script structure hasn't changed
+    answers: 
+      VAR: ANSWER
+      VAR: ANSWER
+      VAR: ANSWER
+    output: |
+      Multiline output
+      from the script
+metrics:
+  METRIC_ID: # Entire metric metadata including name, command, output, comparison type, success true/false
+  METRIC_ID: # Entire metric metadata including name, command, output, comparison type, success true/false
+  METRIC_ID: # Entire metric metadata including name, command, output, comparison type, success true/false
+```
 
 # Using the CLI
 
@@ -116,3 +177,4 @@ The CLI is interactive so the user simply needs to run `flight report` and answe
 - Admin tools
     - Possibilities for collating and contrasting reports
     - Admin command that can summarise what has been reported in past hour / 24 hours / week
+- Support General questions for setting env vars

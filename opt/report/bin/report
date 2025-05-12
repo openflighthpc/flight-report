@@ -9,9 +9,8 @@ require "date"
 # Initialise Variables
 report_dir = File.expand_path(File.join(__FILE__,'../../'))
 
-username = ENV['USER']
-issue_date = Time.now.strftime("%Y%m%d")
-issue_time = Time.now.strftime("%H%M%S")
+require_relative "#{report_dir}/lib/metrics"
+require_relative "#{report_dir}/lib/report"
 
 logdir = report_dir + '/var/reports'
 
@@ -19,6 +18,8 @@ issues = {}
 issuesdir = report_dir + '/etc/issues'
 
 config = report_dir + '/etc/config.yaml'
+
+report = Report.new
 
 # Config options
 if File.file?(config)
@@ -30,17 +31,20 @@ prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
 # Check with user
 if ! config['always_report'] 
-  report = prompt.yes?('Would you like to report an issue?', default: false)
-  if ! report
+  yes = prompt.yes?('Would you like to report an issue?', default: false)
+  if ! yes
     puts "Not reporting anything."
     exit
   end
 end
 
+#
 # Select issue
-## Identify issues by directory name so we can run scripts and things from in there
+#
+
+# Identify issues by directory name so we can run scripts and things from in there
 issuedirs = Dir.entries(issuesdir).select{|dir| !(dir == '.' || dir == '..' || dir == 'general')}
-## Create a map of all the issue directories and their metadata+questions
+# Create a map of all the issue directories and their metadata+questions
 issuedirs.each do |issue|
   issuedir = "#{issuesdir}/#{issue}"
   issues[issue] = YAML.load_file("#{issuedir}/metadata.yaml")
@@ -53,8 +57,11 @@ my_issue_dir = prompt.select("What issue would you like to report?") do |menu|
 end
 
 my_issue = issues[my_issue_dir]
+report.log['meta']['issue_id'] = my_issue_dir
 
+#
 # Ask additional questions
+#
 diag_vars = {}
 if my_issue.key?('questions') then
   my_issue['questions'].each do |question|
@@ -74,6 +81,44 @@ if my_issue.key?('questions') then
   end
 end
 
+report.log['diagnostics']['issue']['answers'] = diag_vars
+
+# Check metrics
+spinner = TTY::Spinner.new(":spinner Checking metrics ...", format: :bouncing_ball)
+spinner.auto_spin
+
+## Run general metrics
+general_metrics_file = "#{issuesdir}/general/metrics.yaml"
+metrics_out = {}
+
+if File.file?(general_metrics_file)
+  metrics_out.merge!(check_metrics(general_metrics_file))
+end
+
+## Run issue-specific metrics
+issue_metrics_file = "#{issuesdir}/#{my_issue_dir}/metrics.yaml"
+
+if File.file?(issue_metrics_file)
+  diag_vars.each do |key, val|
+    ENV[key] = val
+  end
+  metrics_out.merge!(check_metrics(issue_metrics_file))
+end
+
+report.log['metrics'] = metrics_out
+
+## Wait for grace period
+sleep(config['metric_grace_period'] || 0)
+
+## Tell user pass/fail of metrics
+failcount, failmetrics = failed_metrics(metrics_out)
+if failcount == 0
+  spinner.success("All #{metrics_out.count} Checks Passed")
+else
+  spinner.error("Warning with #{failcount}/#{metrics_out.count} Checks")
+  report_metrics_detail(metrics_out)
+end
+
 # Run diagnostics
 spinner = TTY::Spinner.new(":spinner Running diagnostics ...", format: :bouncing_ball)
 spinner.auto_spin
@@ -82,7 +127,14 @@ general_scripts = Dir.glob("#{issuesdir}/general/*.bash")
 ## General scripts
 general_script_outputs = []
 general_scripts.each do |script|
-  general_script_outputs.append(`bash #{script} 2>&1`)
+  out = `bash #{script} 2>&1`
+  # Ensure that YAML output is multiline by replacing tabs with 4 spaces (https://yaml.org/faq.html)
+  out.gsub! /\t/, '    '
+  report.log['diagnostics']['general'][File.basename(script)] = {
+    'script_md5sum'=> nil,
+    'output'=> out
+  }
+  general_script_outputs.append(out)
 end
 
 ## Issue specific
@@ -94,36 +146,37 @@ if File.file?(issue_script)
   end
 
   issue_script_out = `bash #{issue_script} 2>&1`
+  # Ensure that YAML output is multiline by replacing tabs with 4 spaces (https://yaml.org/faq.html)
+  issue_script_out.gsub! /\t/, '    '
+  report.log['diagnostics']['issue']['output'] = issue_script_out
 end
 
 ## Wait for grace period
 sleep(config['diagnostic_grace_period'] || 0)
-spinner.stop("Done!")
-
-## Combine diagnostics
-diag_out = general_script_outputs + [issue_script_out]
+spinner.success("Done!")
 
 # Show diagnostics to user
 if ! config['hide_diagnostics']
   view = prompt.yes?("Would you like to view diagnostics?", default: false)
   if view
-    IO.popen("less", "w") { |f| f.puts diag_out }
+    IO.popen("less", "w") { |f| f.puts report.outputs }
   end
 end
 
 # Compare to previous
 if ! config['hide_compare']
-  prev_report_from_user = Dir.glob("#{logdir}/.user-report-#{my_issue_dir}-#{username}*.log").last
+  # TODO: Identify latest by 'issue_at' time
+  prev_report_from_user = Dir.glob("#{logdir}/.user-report-#{my_issue_dir}-#{report.log['meta']['username']}*.log").last
 
   if prev_report_from_user && File.file?(prev_report_from_user)
     # Identify metadata from filename of previous report
     ## Array of ["", "user", "report", ISSUE_NAME, USERNAME, DATE, TIME, "log"]
-    prev_data = File.basename(prev_report_from_user).split(/[-,.]/)
-    prev_datetime = DateTime.parse(prev_data[-3] + prev_data[-2])
-    compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
+    prev_report = Report.new(prev_report_from_user)
+    prev_datetime = prev_report.log['meta']['issue_at']
+    compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{DateTime.parse(prev_datetime).strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
     if compare
-      current = "# Current Diagnostics: #{DateTime.parse(issue_date + issue_time).strftime("%Y-%m-%d %H:%M:%S")}\n#{diag_out.join('\n')}"
-      previous = "# Previous Diagnostics: #{prev_datetime.strftime("%Y-%m-%d %H:%M:%S")}\n#{File.read(prev_report_from_user)}"
+      current = "# Current Diagnostics: #{DateTime.parse(report.log['meta']['issue_at']).strftime("%Y-%m-%d %H:%M:%S")}\n#{report.outputs}"
+      previous = "# Previous Diagnostics: #{DateTime.parse(prev_datetime).strftime("%Y-%m-%d %H:%M:%S")}\n#{prev_report.outputs}"
       diff_to_prev = `diff -y --width=#{`tput cols`.to_i} <(echo -e '#{current}') <(echo -e '#{previous}')`
       IO.popen("less", "w") { |f| f.puts diff_to_prev }
     end
@@ -131,21 +184,21 @@ if ! config['hide_compare']
 end
 
 # Logging diagnostics
-logfile = "#{logdir}/.user-report-#{my_issue_dir}-#{username}-#{issue_date}-#{issue_time}.log"
+logfile = "#{logdir}/#{report.logname}"
 if ! config['always_send']
-  confirm = false
+  yesconfirm = false
 else
-  confirm = true
-  report = true
+  yesconfirm = true
+  yesreport = true
 end
-until confirm
-  report = prompt.yes?("Would you like to send diagnostics report for '#{my_issue['title']}' to admin?", default: false)
-  confirm = prompt.yes?("  Are you sure?", default: false)
+until yesconfirm
+  yesreport = prompt.yes?("Would you like to send diagnostics report for '#{my_issue['title']}' to admin?", default: false)
+  yesconfirm = prompt.yes?("  Are you sure?", default: false)
 end
 
-if report
+if yesreport
   File.open(logfile, 'a+') do |f|
-    f.puts(diag_out)
+    f.puts(report.log.to_yaml(:options => {:line_width => -1, :indentation => 4}))
   end
   puts "Log reported, thank you for your time"
 else
