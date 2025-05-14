@@ -47,7 +47,7 @@ end
 # Stage 1: Traffic Light Response Rating
 #
 
-smileys = {"😀": 2, "😐": 1, "☹️": 0}
+smileys = {"😀": 2, "😐": 1, "🙁": 0}
 happy = prompt.select("How would you rate your experience on your HPC environment today?", smileys)
 report.log['meta']['rating'] = happy
 
@@ -91,7 +91,7 @@ puts
 puts "Ratings (Last Hour)"
 puts "😀 #{recent_ratings.tally["2"]}"
 puts "😐 #{recent_ratings.tally["1"]}" 
-puts "☹️ #{recent_ratings.tally["0"]}"
+puts "🙁 #{recent_ratings.tally["0"]}"
 puts
 
 #
