@@ -1,10 +1,10 @@
 # Overview
 
-A CLI tool for users to report suspected issues with their HPC environment.
+A CLI tool for users to report and understand suspected issues with their HPC environment.
 
 # Install
 
-This is a script meant to be integrated with the Flight Environment. The scripts in this directory correspond to where they should go in relation to `$flight_ROOT` (e.g. `libexec/commands/report` should be placed at `/opt/flight/libexec/commands/report` in a default flight environment setup).
+This is a application meant to be integrated with the Flight Environment. The scripts in this directory correspond to where they should go in relation to `$flight_ROOT` (e.g. `libexec/commands/report` should be placed at `/opt/flight/libexec/commands/report` in a default flight environment setup).
 
 An example of putting the files in place and installing dependencies (as root):
 ```
@@ -33,9 +33,13 @@ $flight_ROOT/bin/bundle install
 rm -rf /tmp/flight-report
 ```
 
-## [Optional] Add to "Flight Banner"
+## Reporting Tool Extras 
 
-The Flight Environment can include messages in the banner program (when enabled), to add a banner message with a call-to-action for `flight report`, create the file `$flight_ROOT/etc/banner/banner.d/30-report.sh` containing the following:
+_Note: These example alias the `report` script to be accessed via the keyword `assist`_
+
+### [Optional] Add to "Flight Banner"
+
+The Flight Environment can include messages in the banner program (when enabled), to add a banner message with a call-to-action for `flight assist`, create the file `$flight_ROOT/etc/banner/banner.d/30-assist.sh` containing the following:
 ```bash
 (
   bold="$(tput bold)"
@@ -43,18 +47,47 @@ The Flight Environment can include messages in the banner program (when enabled)
   if [[ $TERM =~ "256color" ]]; then
     bgblue="$(tput setab 68)"
   fi
-  echo -e "HOW HAS YOUR HPC EXPERIENCE TODAY BEEN? LET US KNOW!"
+  echo -e "HOW HAS YOUR HPC EXPERIENCE BEEN TODAY? LET US KNOW!"
   printf "  ${bold}${bgblue}flight assist${clr} to get in touch\n"
   echo
 )
 ```
 
-## [Optional] Add to "Flight Tips"
+### [Optional] Add to "Flight Tips"
 
 The Flight Environment can have a "Flight Tips" section which is displayed on login to the system. To add `flight assist` to the tips list create file `$flight_ROOT/etc/banner/tips.d/50-assist.rc` containing the following:
 ```bash
 flight_TIP_command="flight assist"
 flight_TIP_synopsis="Let us know how your experience with the HPC environment is"
+flight_TIP_root="false"
+```
+
+## Summary Tool
+
+_Note: These example alias the `summary` script to be accessed via the keyword `status`_
+
+### [Optional] Add to "Flight Banner"
+
+The Flight Environment can include messages in the banner program (when enabled), to add a banner message with a call-to-action for `flight status`, create the file `$flight_ROOT/etc/banner/banner.d/25-status.sh` containing the following:
+```bash
+(
+  bold="$(tput bold)"
+  clr="$(tput sgr0)"
+  if [[ $TERM =~ "256color" ]]; then
+    bgblue="$(tput setab 68)"
+  fi
+  echo -e "SEE THE STATUS OF YOUR HPC ENVIRONMENT!"
+  printf "  ${bold}${bgblue}flight status${clr} for more information\n"
+  echo
+)
+```
+
+### [Optional] Add to "Flight Tips"
+
+The Flight Environment can have a "Flight Tips" section which is displayed on login to the system. To add `flight assist` to the tips list create file `$flight_ROOT/etc/banner/tips.d/45-status.rc` containing the following:
+```bash
+flight_TIP_command="flight status"
+flight_TIP_synopsis="See the current status of the HPC environment (including any known issues)"
 flight_TIP_root="false"
 ```
 
