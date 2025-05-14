@@ -51,10 +51,20 @@ puts
 # Reports
 #
 
+recent_reports_hour = all_reports(reportsdir)
+puts "Issues Reported (Past Hour)"
+recent_reports_hour_pretty = recent_reports_hour.map{|issue_id, count| [YAML.load_file("#{issuesdir}/#{issue_id}/metadata.yaml")['title'], count]}.to_h
+puts XY.bar(recent_reports_hour_pretty)
+puts
+
+recent_reports_day = all_reports(reportsdir, 24)
+puts "Issues Reported (Past Day)"
+recent_reports_day_pretty = recent_reports_day.map{|issue_id, count| [YAML.load_file("#{issuesdir}/#{issue_id}/metadata.yaml")['title'], count]}.to_h
+puts XY.bar(recent_reports_day_pretty)
+puts
+
 recent_reports_week = all_reports(reportsdir, (24*7))
 puts "Issues Reported (Past Week)"
-
 recent_reports_week_pretty = recent_reports_week.map{|issue_id, count| [YAML.load_file("#{issuesdir}/#{issue_id}/metadata.yaml")['title'], count]}.to_h
-
 puts XY.bar(recent_reports_week_pretty)
 puts
