@@ -46,7 +46,7 @@ module XY
     "#{((n / sum) * 100).round(1)}%"
   end
 
-  def chart(type = :bar, hsh = {})
+  def chart(type = :bar, hsh = {}, percentages = false)
     arr = hsh.values
 
     max_strlen = [hsh.keys(&:to_s).map(&:length).max, 4].max
@@ -59,7 +59,7 @@ module XY
     case type.to_sym
     when :bar
       hsh.map do |label, n|
-        "#{label.to_s.ljust(max_strlen, ' ')} #{BARS[chart_index(n, min_n, max_n, 49)]} #{grey(pcnt(n, sum))}"
+        "#{label.to_s.ljust(max_strlen, ' ')} #{BARS[chart_index(n, min_n, max_n, 49)]} #{grey(percentages && pcnt(n, sum) || n)}"
       end.join("\n")
 
     when :spark
