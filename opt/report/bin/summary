@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+# Requirements
+require "tty-prompt"
+require "tty-spinner"
+require "yaml"
+require "date"
+
+# Initialise Variables
+app_dir = File.expand_path(File.join(__FILE__,'../../'))
+ 
+issuesdir = app_dir + '/etc/issues'
+statusesdir = app_dir + '/etc/statuses'
+ratingsdir = app_dir + '/var/ratings'
+reportsdir = app_dir + '/var/reports'
+
+require_relative "#{app_dir}/lib/report"
+require_relative "#{app_dir}/lib/statistics"
+require_relative "#{app_dir}/lib/xy"
+
+#
+# Status Reports
+#
+statuses = all_statuses(statusesdir)
+puts "Status Reports:"
+if statuses.count > 0 
+  puts statuses
+else
+  puts "- No statuses to report"
+end
+puts
+
+#
+# Ratings
+#
+recent_ratings = all_ratings(ratingsdir)
+recent_ratings_day = all_ratings(ratingsdir, 24)
+recent_ratings_week = all_ratings(ratingsdir, (24*7))
+
+puts "Ratings (Past Hour)"
+puts XY.bar(recent_ratings)
+puts
+puts "Ratings (Past Day)"
+puts XY.bar(recent_ratings_day)
+puts
+puts "Ratings (Past Week)"
+puts XY.bar(recent_ratings_week)
+puts
+
+#
+# Reports
+#
+
+recent_reports_week = all_reports(reportsdir, (24*7))
+puts "Issues Reported (Past Week)"
+
+recent_reports_week_pretty = recent_reports_week.map{|issue_id, count| [YAML.load_file("#{issuesdir}/#{issue_id}/metadata.yaml")['title'], count]}.to_h
+
+puts XY.bar(recent_reports_week_pretty)
+puts
