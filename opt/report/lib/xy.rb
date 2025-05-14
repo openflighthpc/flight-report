@@ -48,6 +48,10 @@ module XY
 
   def chart(type = :bar, hsh = {}, percentages = false)
     arr = hsh.values
+    return "    No data to display" unless
+      arr.is_a?(Array) &&
+      arr.all? { |n| n.is_a?(Numeric) } &&
+      arr.length > 0
 
     max_strlen = [hsh.keys(&:to_s).map(&:length).max, 4].max
     min_n = 0
