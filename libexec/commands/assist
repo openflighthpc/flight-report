@@ -2,7 +2,6 @@
 : NAME: assist
 : SYNOPSIS: Let us know how your experience with the HPC environment is
 : VERSION: 1.1.0
-: ROOT: false
 : '
 export FLIGHT_CWD="$(pwd)"
 cd $flight_ROOT/opt/report
