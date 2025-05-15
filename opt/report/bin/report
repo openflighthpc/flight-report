@@ -6,6 +6,29 @@ require "tty-spinner"
 require "yaml"
 require "date"
 
+ARGS={}
+ARGV.each do |arg|
+  case arg
+    when '-h','--help', '-help', 'help' then ARGS[:help] = true
+    else
+      ARGS[:help] = true
+      ARGS[:unknown] = true
+    end
+end
+
+if ARGS[:help]
+  if ARGS[:unknown]
+    puts "Unrecognised options provided: #{ARGV}"
+    puts
+  end
+  puts "Usage:"
+  puts "   Run this command without arguments to interactively document your experience"
+  puts
+  puts "-h, --help    Show this help page"
+  puts
+  exit
+end
+
 # Initialise Variables
 app_dir = File.expand_path(File.join(__FILE__,'../../'))
 
