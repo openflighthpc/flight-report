@@ -6,6 +6,12 @@ require "tty-spinner"
 require "yaml"
 require "date"
 
+require_relative "../lib/config"
+require_relative "../lib/metrics"
+require_relative "../lib/report"
+require_relative "../lib/statistics"
+require_relative "../lib/xy"
+
 ARGS={}
 ARGV.each do |arg|
   case arg
@@ -29,30 +35,10 @@ if ARGS[:help]
   exit
 end
 
-# Initialise Variables
-app_dir = File.expand_path(File.join(__FILE__,'../../'))
-
-require_relative "#{app_dir}/lib/metrics"
-require_relative "#{app_dir}/lib/report"
-
-accesslogsdir = app_dir + '/var/accesslogs'
-reportsdir = app_dir + '/var/reports'
-ratingsdir = app_dir + '/var/ratings'
-
 issues = {}
-issuesdir = app_dir + '/etc/issues'
-
 statuses = {}
-statusesdir = app_dir + '/etc/statuses'
-
-config = app_dir + '/etc/config.yaml'
 
 report = Report.new
-
-# Config options
-if File.file?(config)
-  config = YAML.load_file("#{app_dir}/etc/config.yaml") || nil
-end
 
 # Create prompt
 prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
@@ -61,7 +47,7 @@ prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 # Stage 0: Log that someone has actually used this
 #
 
-accesslogfile = "#{accesslogsdir}/.user-access-#{report.log['meta']['username']}"
+accesslogfile = "#{Config.accesslogsdir}/.user-access-#{report.log['meta']['username']}"
 File.open(accesslogfile, 'a+') do |f|
   f.puts("#{report.log['meta']['username']} ran the command at #{DateTime.parse(report.log['meta']['reported_at']).strftime("%Y-%m-%d %H:%M:%S")}")
 end
@@ -70,11 +56,10 @@ end
 # Stage 1: Traffic Light Response Rating
 #
 
-smileys = {"😀": 2, "😐": 1, "🙁": 0}
-happy = prompt.select("How would you rate your experience on your HPC environment today?", smileys)
+happy = prompt.select("How would you rate your experience on your HPC environment today?", Config.traffic_lights.invert)
 report.log['meta']['rating'] = happy
 
-ratingfile = "#{ratingsdir}/#{report.ratingfilename}"
+ratingfile = "#{Config.ratingsdir}/#{report.ratingfilename}"
 File.open(ratingfile, 'a+') do |f|
   f.puts(report.log['meta']['rating'])
 end
@@ -89,32 +74,20 @@ end
 #
 
 # Status reports
-statuses = Dir.glob("#{statusesdir}/*.yaml")
+statuses = all_statuses
+puts "Status Reports:"
 if statuses.count > 0
-  puts
-  puts "Status Updates:"
-  statuses.each do |status|
-    data = YAML.load_file(status)
-    case data['type']
-    when 'warning'
-      icon = "⚠️"
-    when 'working'
-      icon = "✅"
-    when *
-      icon = "ℹ️"
-    end
-    puts "#{icon} #{data['message']}"
-  end
+  puts statuses
+else
+  puts "- No statuses to report"
 end
 
 # Cumulative ratings
-recent_ratings = Dir.glob("#{ratingsdir}/.user-rating-*.log").select {|f| File.mtime(f) > (Time.now - 3600) }.map{ |f| File.read(f).strip}
+recent_ratings = all_ratings
 
 puts
-puts "Ratings (Last Hour)"
-puts "😀 #{recent_ratings.tally["2"]}"
-puts "😐 #{recent_ratings.tally["1"]}" 
-puts "🙁 #{recent_ratings.tally["0"]}"
+puts "Ratings (Past Hour)"
+puts XY.bar(recent_ratings)
 puts
 
 #
@@ -122,7 +95,7 @@ puts
 #
 
 # Check with user
-if ! config['always_report'] 
+if ! Config.always_report 
   yes = prompt.yes?('Would you like to report an issue?', default: false)
   if ! yes
     puts "Thank you for time! Your response has been recorded"
@@ -131,10 +104,10 @@ if ! config['always_report']
 end
 
 # Identify issues by directory name so we can run scripts and things from in there
-issuedirs = Dir.entries(issuesdir).select{|dir| !(dir == '.' || dir == '..' || dir == 'general')}
+issuedirs = Dir.entries(Config.issuesdir).select{|dir| !(dir == '.' || dir == '..' || dir == 'general')}
 # Create a map of all the issue directories and their metadata+questions
 issuedirs.each do |issue|
-  issuedir = "#{issuesdir}/#{issue}"
+  issuedir = "#{Config.issuesdir}/#{issue}"
   issues[issue] = YAML.load_file("#{issuedir}/metadata.yaml")
   if File.file? "#{issuedir}/questions.yaml"
     issues[issue]['questions'] = YAML.load_file("#{issuedir}/questions.yaml")
@@ -176,7 +149,7 @@ spinner = TTY::Spinner.new(":spinner Checking metrics ...", format: :bouncing_ba
 spinner.auto_spin
 
 ## Run general metrics
-general_metrics_file = "#{issuesdir}/general/metrics.yaml"
+general_metrics_file = "#{Config.issuesdir}/general/metrics.yaml"
 metrics_out = {}
 
 if File.file?(general_metrics_file)
@@ -184,7 +157,7 @@ if File.file?(general_metrics_file)
 end
 
 ## Run issue-specific metrics
-issue_metrics_file = "#{issuesdir}/#{my_issue_dir}/metrics.yaml"
+issue_metrics_file = "#{Config.issuesdir}/#{my_issue_dir}/metrics.yaml"
 
 if File.file?(issue_metrics_file)
   diag_vars.each do |key, val|
@@ -196,7 +169,7 @@ end
 report.log['metrics'] = metrics_out
 
 ## Wait for grace period
-sleep(config['metric_grace_period'] || 0)
+sleep(Config.metric_grace_period)
 
 ## Tell user pass/fail of metrics
 failcount, failmetrics = failed_metrics(metrics_out)
@@ -213,7 +186,7 @@ end
 spinner = TTY::Spinner.new(":spinner Running diagnostics ...", format: :bouncing_ball)
 spinner.auto_spin
 
-general_scripts = Dir.glob("#{issuesdir}/general/*.bash")
+general_scripts = Dir.glob("#{Config.issuesdir}/general/*.bash")
 ## General scripts
 general_script_outputs = []
 general_scripts.each do |script|
@@ -228,7 +201,7 @@ general_scripts.each do |script|
 end
 
 ## Issue specific
-issue_script = "#{issuesdir}/#{my_issue_dir}/diagnostics.bash"
+issue_script = "#{Config.issuesdir}/#{my_issue_dir}/diagnostics.bash"
 
 if File.file?(issue_script)
   diag_vars.each do |key, val|
@@ -242,11 +215,11 @@ if File.file?(issue_script)
 end
 
 ## Wait for grace period
-sleep(config['diagnostic_grace_period'] || 0)
+sleep(Config.diagnostic_grace_period)
 spinner.success("Done!")
 
 # Show diagnostics to user
-if ! config['hide_diagnostics']
+if ! Config.hide_diagnostics
   view = prompt.yes?("Would you like to view diagnostics?", default: false)
   if view
     IO.popen("less", "w") { |f| f.puts report.outputs }
@@ -256,13 +229,11 @@ end
 #
 # Stage 6: Compare to previous
 #
-if ! config['hide_compare']
+if ! Config.hide_compare
   # TODO: Identify latest by 'issue_at' time
-  prev_report_from_user = Dir.glob("#{reportsdir}/.user-report-#{my_issue_dir}-#{report.log['meta']['username']}*.log").last
+  prev_report_from_user = Dir.glob("#{Config.reportsdir}/.user-report-#{my_issue_dir}-#{report.log['meta']['username']}*.log").last
 
   if prev_report_from_user && File.file?(prev_report_from_user)
-    # Identify metadata from filename of previous report
-    ## Array of ["", "user", "report", ISSUE_NAME, USERNAME, DATE, TIME, "log"]
     prev_report = Report.new(prev_report_from_user)
     prev_datetime = prev_report.log['meta']['issue_at']
     compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{DateTime.parse(prev_datetime).strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
@@ -278,8 +249,8 @@ end
 #
 # Stage 7: Logging diagnostics
 # 
-logfile = "#{reportsdir}/#{report.reportfilename}"
-if ! config['always_send']
+logfile = "#{Config.reportsdir}/#{report.reportfilename}"
+if ! Config.always_send
   yesconfirm = false
 else
   yesconfirm = true

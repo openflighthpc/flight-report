@@ -15,7 +15,7 @@ git clone https://github.com/openflighthpc/flight-report /tmp/flight-report
 cp -r /tmp/flight-report/opt $flight_ROOT/
 cp -r /tmp/flight-report/libexec $flight_ROOT/
 
-# Configure CLI tool 
+# Optional: Configure CLI tool (otherwise will use default settings)
 ## Open and edit the file to change defaults
 cp $flight_ROOT/opt/report/etc/config.yaml.example $flight_ROOT/opt/report/etc/config.yaml
 

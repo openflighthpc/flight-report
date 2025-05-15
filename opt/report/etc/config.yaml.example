@@ -26,3 +26,9 @@ hide_compare: true
 #
 # When true it will always save to var/reports
 always_send: true
+
+# Set whether to use emojis in the application.
+#
+# When true it will use emojis and when false it will replace the emojis used
+# for traffic light ratings and status updates with appropriate standard characters.
+enable_emojis: true

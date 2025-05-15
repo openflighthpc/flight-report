@@ -27,10 +27,6 @@ end
 
 def report_metrics_detail(metrics)
   metrics.each do |metric, data|
-    if data['success'] == true
-      puts "  🟢 #{data['name']}"
-    else
-      puts "  🟠 #{data['name']}"
-    end
+    puts "  #{Config.metrics_symbol(data['success'])} #{data['name']}"
   end
 end
