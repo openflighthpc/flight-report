@@ -24,7 +24,7 @@ if ARGS[:help]
   puts "Usage:"
   puts "   Run this command without arguments to interactively document your experience"
   puts
-  puts "-h, --help    Show this help page"
+  puts "-h, --help, help    Show this help page"
   puts
   exit
 end
