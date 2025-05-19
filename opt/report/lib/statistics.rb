@@ -26,7 +26,10 @@ end
 def all_ratings(hours=1)
   recent_ratings = Dir.glob("#{Config.ratingsdir}/.user-rating-*.log").select {|f| File.ctime(f) > (Time.now - (3600 * hours)) }.map{ |f| File.read(f).strip}
 
-  ratings = {Config.traffic_lights[2] => recent_ratings.tally["2"] || 0, Config.traffic_lights[1] => recent_ratings.tally["1"] || 0, Config.traffic_lights[0] => recent_ratings.tally["0"] || 0}
-  #ratings = {"Good" => recent_ratings.tally["2"] || 0, "Okay" => recent_ratings.tally["1"] || 0, "Bad " => recent_ratings.tally["0"] || 0}
+  ratings = {Config.traffic_lights[2] => tally(recent_ratings)["2"] || 0, Config.traffic_lights[1] => tally(recent_ratings)["1"] || 0, Config.traffic_lights[0] => tally(recent_ratings)["0"] || 0}
   return ratings
+end
+
+def tally(arry)
+  return arry.group_by(&:itself).transform_values(&:count)
 end

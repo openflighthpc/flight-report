@@ -4,6 +4,8 @@ A CLI tool for users to report and understand suspected issues with their HPC en
 
 # Install
 
+**FOR LEGACY REASONS THIS TOOL CURRENTLY MUST SUPPORT RUBY 2.6+**
+
 This is a application meant to be integrated with the Flight Environment. The scripts in this directory correspond to where they should go in relation to `$flight_ROOT` (e.g. `libexec/commands/report` should be placed at `/opt/flight/libexec/commands/report` in a default flight environment setup).
 
 An example of putting the files in place and installing dependencies (as root):
