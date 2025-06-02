@@ -1,0 +1,9 @@
+: '
+: NAME: check
+: SYNOPSIS: Alces Tool to check a component
+: VERSION: 1.0.0
+: '
+export FLIGHT_CWD="$(pwd)"
+cd $flight_ROOT/opt/report
+export FLIGHT_PROGRAM_NAME="${flight_NAME} $(basename $0)"
+flexec bundle exec bin/checks "$@"
