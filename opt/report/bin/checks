@@ -4,103 +4,53 @@ require 'tty-prompt'
 require 'tty-spinner'
 require 'yaml'
 require 'date'
-require 'io/console'
 require 'tempfile'
 
-CHECK_DIR = '/opt/flight/opt/report/etc/checks'
+require_relative "../lib/config"
+require_relative "../lib/checks"
+
 TIMESTAMP = Time.now.strftime("%Y-%m-%d_%H-%M")
-RESULTS_FILE = "/opt/flight/opt/report/var/check-results/status-report-#{TIMESTAMP}.txt"
+RESULTS_FILE = "#{Config.checkresultsdir}/status-report-#{TIMESTAMP}.txt"
 
-prompt = TTY::Prompt.new
+prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
-privileged = prompt.yes?("Do you want to run administrative checks?")
-
-#Get pass if needed
 password = nil
-if privileged
-  password = prompt.mask("Enter passphrase for administrative checks:")
+if check_privileged
+  privileged = prompt.yes?("Do you want to run administrative checks?")
+  if privileged
+    password = prompt.mask("Enter passphrase for administrative checks:")
+  end
 end
 
-# List scripts in dir
-#def list_scripts(check_dir, privileged)
-#  Dir.entries(check_dir)
-#     .select { |f| File.file?(File.join(check_dir, f)) }
-#     .select { |f| privileged ? f.end_with?('.sh.gpg') || f.end_with?('.sh') : f.end_with?('.sh') }
-#     .sort
-#end
+checks = get_checks(privileged, password)
 
-def list_scripts(check_dir, privileged, password)
-  scripts = []
-
-  Dir.entries(check_dir)
-     .select { |f| File.file?(File.join(check_dir, f)) }
-     .select { |f| privileged ? f.end_with?('.sh.gpg') || f.end_with?('.sh') : f.end_with?('.sh') }
-     .sort
-     .each { |f|
-       if f.end_with?('.sh.gpg')
-         decrypted_script = nil
-         IO.popen(['gpg', '--batch', '--quiet', '--passphrase-fd', '0', '--decrypt', File.join(check_dir, f)], 'r+', err: [:child, :out]) do |io|
-           io.puts password
-           io.close_write
-           decrypted_script = io.read
-         end
-
-         description = decrypted_script.split("\n").grep(/^# Description: /)[0].delete_prefix("# Description: ")
-       else
-         description = `cat #{File.join(check_dir, f)} | egrep "^# Description: " | sed 's/^# Description: //g' | head -1`.strip
-       end
-
-       scripts.append("script" => f, "description" => description)
-     }
-
-  return scripts
-end
-
-scripts = list_scripts(CHECK_DIR, privileged, password)
-if scripts.empty?
-  puts "No #{privileged ? 'administrative' : 'non-administrative'} check scripts found in #{CHECK_DIR}."
+if checks.empty?
+  puts "No check scripts found in #{Config.checksdir}."
   exit
 end
 
-menu_scripts = scripts.map.with_index {|s, i| {"#{s['script']} #{s['description'].empty? ? '' : '(' + s['description'] + ')'}" => s['script']}}
+selected_checks = prompt.multi_select("Select checks to run:", per_page: 10) do |menu| 
+  checks.each.map {|check| menu.choice "#{check['name']}: #{check['description']}", check}
+end
 
-selected_scripts = prompt.multi_select("Select checks to run:", menu_scripts, per_page: 10)
-if selected_scripts.empty?
+if selected_checks.empty?
   puts "No checks selected. Exiting."
   exit
 end
 
 #Run selected scripts and log
-File.open(RESULTS_FILE, 'a') do |file|
+File.open(RESULTS_FILE, 'a+') do |file|
   file.puts "===== Execution started at #{DateTime.now} ====="
 
-  selected_scripts.each do |script|
-    full_path = File.join(CHECK_DIR, script)
-    spinner = TTY::Spinner.new("[:spinner] Running #{script} ...", format: :bouncing_ball)
+  selected_checks.each do |check|
+    spinner = TTY::Spinner.new("[:spinner] Running #{check['name']} ...", format: :bouncing_ball)
     spinner.auto_spin
-
-    output = nil
-    if script.end_with?('.gpg')
-      decrypted_script = nil
-      IO.popen(['gpg', '--batch', '--quiet', '--passphrase-fd', '0', '--decrypt', full_path], 'r+', err: [:child, :out]) do |io|
-        io.puts password
-        io.close_write
-        decrypted_script = io.read
-      end
-
-      Tempfile.create(['decrypted_', '.sh']) do |temp|
-        temp.write(decrypted_script)
-        temp.close
-        output = `bash #{temp.path} 2>&1`
-      end
-    else
-      output = `bash #{full_path} 2>&1`
-    end
-
+    out = run_check(check)
     spinner.success("(Done)")
-    file.puts "----- #{script} Output -----"
-    file.puts output
-    file.puts "----- End of #{script} Output -----\n\n"
+
+    file.puts "----- #{check['name']} Output -----"
+    file.puts out
+    file.puts "----- End of #{check['name']} Output -----\n\n"
   end
 
   file.puts "===== Execution finished at #{DateTime.now} =====\n\n"
