@@ -108,6 +108,7 @@ To update the CLI tool simply clone the repository and copy the files into place
 `Checks` are scripts used to check & identify issues within a HPC environment. These `Checks` can then be used to create `Statuses`.
 
 Each check script must:
+- Be created in `etc/checks/` and end with `.sh`
 - Contain a line starting `# Description:` followed by a brief description of what the script does
 - Be a BASH script
 
@@ -116,6 +117,7 @@ Each check script must:
 Encrypted checks are useful for allowing only certain users entrusted with a decryption password to be able to execute the tests (without exposing the content of the scripts to unauthorised users). 
 
 Each encrypted check must:
+- Be created in `etc/checks/` and end with `.sh.gpg`
 - Must be decrypted by the same password (across an installation of this tool)
 
 This has been tested by creating an encrypted script as follows: 
