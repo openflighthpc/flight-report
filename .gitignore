@@ -1,4 +1,4 @@
-etc/config.yaml
+opt/report/etc/config.yaml
 opt/report/var/accesslogs/.user*
 opt/report/var/check-results/status-report-*
 opt/report/var/ratings/.user*
