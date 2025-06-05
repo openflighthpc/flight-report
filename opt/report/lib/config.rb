@@ -10,12 +10,20 @@ class Config
       return "#{appdir}/var/accesslogs"
     end
 
+    def checksdir
+      return "#{appdir}/etc/checks"
+    end
+
     def issuesdir
       return "#{appdir}/etc/issues"
     end
     
     def statusesdir 
       return "#{appdir}/etc/statuses"
+    end
+
+    def checkresultsdir
+      return "#{appdir}/var/check-results"
     end
 
     def ratingsdir 
@@ -69,6 +77,10 @@ class Config
 
     def enable_emojis
       confval('enable_emojis', true)
+    end
+
+    def privileged_check_users
+      confval("privileged_check_users", ['root'])
     end
 
     def traffic_lights
