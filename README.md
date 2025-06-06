@@ -22,9 +22,7 @@ cp -r /tmp/flight-report/libexec $flight_ROOT/
 cp $flight_ROOT/opt/report/etc/config.yaml.example $flight_ROOT/opt/report/etc/config.yaml
 
 # Ensure log directories are writeable by all users
-chmod 777 $flight_ROOT/opt/report/var/accesslogs
-chmod 777 $flight_ROOT/opt/report/var/ratings
-chmod 777 $flight_ROOT/opt/report/var/reports
+chmod 777 $flight_ROOT/opt/report/var/{accesslogs,check-results,ratings,reports}
 
 # Install ruby dependencies
 cd $flight_ROOT/opt/report/
@@ -104,6 +102,32 @@ To update the CLI tool simply clone the repository and copy the files into place
 - `opt/report/etc/issues/general/metrics.yaml`: These metrics are checked for every issue
 
 # Adding Content
+
+## Checks
+
+`Checks` are scripts used to check & identify issues within a HPC environment. These `Checks` can then be used to create `Statuses`.
+
+Each check script must:
+- Be created in `etc/checks/` and end with `.sh`
+- Contain a line starting `# Description:` followed by a brief description of what the script does
+- Be a BASH script
+
+### Encrypted Checks
+
+Encrypted checks are useful for allowing only certain users entrusted with a decryption password to be able to execute the tests (without exposing the content of the scripts to unauthorised users). 
+
+Each encrypted check must:
+- Be created in `etc/checks/` and end with `.sh.gpg`
+- Must be decrypted by the same password (across an installation of this tool)
+
+This has been tested by creating an encrypted script as follows: 
+```bash
+# Create source script
+echo -e "# Description: Run an encrypted check\necho 'Encrypted script test'" > /tmp/encrypted_check.sh.source
+
+# Encrypt with password (will prompt for input)
+gpg -c --no-symkey-cache --armour -o etc/checks/encrypted_example.sh.gpg /tmp/encrypted_example.sh.in
+```
 
 ## Statuses
 

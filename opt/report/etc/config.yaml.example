@@ -32,3 +32,11 @@ always_send: true
 # When true it will use emojis and when false it will replace the emojis used
 # for traffic light ratings and status updates with appropriate standard characters.
 enable_emojis: true
+
+# Set which users are offered the option to run administrative checks
+#
+# Any users in this list that run the check command will additionally be asked if they
+# want to run administrative checks and will be prompted for a password to decrypt 
+# the administrative check files
+privileged_check_users:
+- root

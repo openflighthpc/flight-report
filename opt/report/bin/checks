@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+require 'tty-prompt'
+require 'tty-spinner'
+require 'yaml'
+require 'date'
+require 'tempfile'
+
+require_relative "../lib/config"
+require_relative "../lib/checks"
+
+TIMESTAMP = Time.now.strftime("%Y-%m-%d_%H-%M")
+RESULTS_FILE = "#{Config.checkresultsdir}/status-report-#{TIMESTAMP}.txt"
+
+prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
+
+password = nil
+if check_privileged
+  privileged = prompt.yes?("Do you want to run administrative checks?")
+  if privileged
+    password = prompt.mask("Enter passphrase for administrative checks:")
+  end
+end
+
+checks = get_checks(privileged, password)
+
+if checks.empty?
+  puts "No check scripts found in #{Config.checksdir}."
+  exit
+end
+
+selected_checks = prompt.multi_select("Select checks to run:", per_page: 10) do |menu| 
+  checks.each.map {|check| menu.choice "#{check['name']}: #{check['description']}", check}
+end
+
+if selected_checks.empty?
+  puts "No checks selected. Exiting."
+  exit
+end
+
+#Run selected scripts and log
+File.open(RESULTS_FILE, 'a+') do |file|
+  file.puts "===== Execution started at #{DateTime.now} ====="
+
+  selected_checks.each do |check|
+    spinner = TTY::Spinner.new("[:spinner] Running #{check['name']} ...", format: :bouncing_ball)
+    spinner.auto_spin
+    out = run_check(check)
+    spinner.success("(Done)")
+
+    file.puts "----- #{check['name']} Output -----"
+    file.puts out
+    file.puts "----- End of #{check['name']} Output -----\n\n"
+  end
+
+  file.puts "===== Execution finished at #{DateTime.now} =====\n\n"
+end
+
+puts "All selected checks have been executed. Results located in #{RESULTS_FILE}"
+
