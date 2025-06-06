@@ -123,10 +123,10 @@ Each encrypted check must:
 This has been tested by creating an encrypted script as follows: 
 ```bash
 # Create source script
-echo -e "# Description: Run an encrypted check\necho 'Encrypted script test'" > /tmp/encrypted_check.sh.source
+echo -e "# Description: Run an encrypted check\necho 'Encrypted script test'" > /tmp/encrypted_example.sh.source
 
 # Encrypt with password (will prompt for input)
-gpg -c --no-symkey-cache --armour -o etc/checks/encrypted_example.sh.gpg /tmp/encrypted_example.sh.in
+gpg -c --no-symkey-cache --armour -o etc/checks/encrypted_example.sh.gpg /tmp/encrypted_example.sh.source
 ```
 
 ## Statuses
