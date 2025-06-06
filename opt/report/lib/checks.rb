@@ -17,10 +17,13 @@ def get_checks(include_privileged, password)
   # Decrypt privileged scripts if we've been given a password
   if include_privileged && password
     # Headless decryption
-    @gpg = GPGME::Crypto.new
+    @gpg = GPGME::Ctx.new(pinentry_mode: GPGME::PINENTRY_MODE_LOOPBACK, password: password)
+    # Prevent caching of correct password so it needs to be provided everytime checks are run
+    @gpg.set_ctx_flag('no-symkey-cache', 1)
     privileged_check_files.each do |priv_file|
       checks.append(get_check_data(priv_file, true, password))
     end
+    @gpg.release
   end
 
   # Returns a hash of all available checks
@@ -31,8 +34,8 @@ def get_check_data(checkfile, encrypted=false, password=nil)
   filename = File.basename(checkfile)
   if encrypted
     begin
-      content = @gpg.decrypt(File.read(checkfile), pinentry_mode: GPGME::PINENTRY_MODE_LOOPBACK, password: password).read
-    rescue GPGME::Error::BadPassphrase
+      content = @gpg.decrypt(GPGME::Data.new(File.open(checkfile))).read
+    rescue GPGME::Error::BadPassphrase, GPGME::Error::DecryptFailed
       puts "Failed to decrypt '#{filename}: Incorrect administrative password provided"
       exit 1
     end
