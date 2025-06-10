@@ -76,9 +76,13 @@ The Flight Environment can include messages in the banner program (when enabled)
   if [[ $TERM =~ "256color" ]]; then
     bgblue="$(tput setab 68)"
   fi
-  echo -e "SEE THE STATUS OF YOUR HPC ENVIRONMENT!"
-  printf "  ${bold}${bgblue}flight status${clr} for more information\n"
-  echo
+  STATUSES="$(/opt/flight/bin/flight status --banner)"
+  if [[ ! -z $STATUSES ]] ; then 
+    echo "CLUSTER STATUS UPDATES"
+    echo "$STATUSES"
+    printf "\n  ${bold}${bgblue}flight status${clr} for more information\n"
+    echo
+  fi
 )
 ```
 
