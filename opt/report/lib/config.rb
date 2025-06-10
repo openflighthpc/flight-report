@@ -83,6 +83,10 @@ class Config
       confval("privileged_check_users", ['root'])
     end
 
+    def show_timestamps
+      confval("show_timestamps", true)
+    end
+
     def traffic_lights
       if enable_emojis
         return {2 => "😀" , 1 => "😐", 0 => "🙁"}

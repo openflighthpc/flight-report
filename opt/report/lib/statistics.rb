@@ -17,10 +17,35 @@ def all_statuses(type=nil)
   if statuses.count > 0
     statuses.each do |status|
       data = YAML.load_file(status)
+
+      # Filter to specified type if present
       if type && data['type'] != type
         next
       end
-      status_details.append("#{Config.status_symbol(data['type'])} #{data['message']}")
+
+      # Add timestamps if not present in file (and timestamps enabled)
+      datemsg=""
+      if Config.show_timestamps
+        if ! data.key?('first_reported')
+          data['first_reported'] = File.ctime(status).to_s
+        end
+        if ! data.key?('last_updated')
+          data['last_updated'] = File.mtime(status).to_s
+        end
+
+        if DateTime.parse(data['first_reported']) == DateTime.parse(data['last_updated'])
+          datemsg = "(First Reported: #{DateTime.parse(data['first_reported']).strftime("%Y-%m-%d %H:%M:%S")})"
+        else
+          datemsg = "(First Reported: #{DateTime.parse(data['first_reported']).strftime("%Y-%m-%d %H:%M:%S")}, Last Updated: #{DateTime.parse(data['last_updated']).strftime("%Y-%m-%d %H:%M:%S")})"
+        end
+      end
+
+      # Generate status output
+      sym = Config.status_symbol(data['type'])
+      msg = data['message']
+
+      # Add to statuses
+      status_details.append("#{sym} #{msg} #{datemsg}")
     end
   end
   return status_details

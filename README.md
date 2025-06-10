@@ -142,11 +142,14 @@ To add a status:
     ```yaml
     type: warning
     message: "Network: We are aware of a network performance degradation which we are investigating"
+    first_reported: 'YYYY-MM-DDTHH:MM:SS' #OPTIONAL
+    last_updated: 'YYYY-MM-DDTHH:MM:SS' #OPTIONAL
     ```
     - Type determines the emoji that's displayed next to the message, it can be:
         - `working`: ✅
         - `warning`: ⚠️ 
         - Anything else: ℹ️
+    - `first_updated` and `last_updated` are **optional**, if not present then `first_updated` will be file creation time and `last_updated` will be last modified time 
 
 ## Issues
 

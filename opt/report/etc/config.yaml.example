@@ -40,3 +40,6 @@ enable_emojis: true
 # the administrative check files
 privileged_check_users:
 - root
+
+# Set whether to show timestamps for statuses
+show_timestamps: true
