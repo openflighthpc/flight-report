@@ -15,6 +15,7 @@ ARGS={}
 ARGV.each do |arg|
   case arg
     when '-h','--help', '-help', 'help' then ARGS[:help] = true
+    when '-b','--banner','-banner','banner' then ARGS[:banner] = true
     else
       ARGS[:help] = true
       ARGS[:unknown] = true
@@ -29,7 +30,8 @@ if ARGS[:help]
   puts "Usage:"
   puts "   Run this command without arguments to get status information"
   puts
-  puts "-h, --help, help    Show this help page"
+  puts "-b, --banner, banner     Return a banner-friendly output"
+  puts "-h, --help, help         Show this help page"
   puts
   exit
 end
@@ -37,14 +39,20 @@ end
 #
 # Status Reports
 #
-statuses = all_statuses
-puts "Status Reports:"
-if statuses.count > 0 
+if ARGS[:banner]
+  statuses = all_statuses('warning')
   puts statuses
+  exit
 else
-  puts "- No statuses to report"
+  puts "Status Reports:"
+  statuses = all_statuses
+  if statuses.count > 0 
+    puts statuses
+  else
+    puts "- No statuses to report"
+  end
+  puts
 end
-puts
 
 #
 # Ratings

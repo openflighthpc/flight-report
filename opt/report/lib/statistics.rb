@@ -11,12 +11,15 @@ def all_reports(hours=1)
   return report_summary
 end
 
-def all_statuses
+def all_statuses(type=nil)
   statuses = Dir.glob("#{Config.statusesdir}/*.yaml")
   status_details = []
   if statuses.count > 0
     statuses.each do |status|
       data = YAML.load_file(status)
+      if type && data['type'] != type
+        next
+      end
       status_details.append("#{Config.status_symbol(data['type'])} #{data['message']}")
     end
   end
