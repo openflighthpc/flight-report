@@ -1,4 +1,5 @@
 require 'gpgme'
+require 'json'
 
 def check_privileged
   return Config.privileged_check_users.include?(ENV['USER'])
@@ -64,4 +65,27 @@ def run_check(check_hash)
   File.unlink(check_script.path)
 
   return output
+end
+
+def check_to_status(output, prompt)
+  # Identify if there is a status provided by the check and offer it to user
+  status = YAML.load(output.lines.last) # Ensure we're only trying to load in a single line
+  if is_valid_status(status)
+    if (Config.warnings_only && status['type'] == 'warning') || ! Config.warnings_only
+      if prompt.yes?("Add status '#{Config.status_symbol(status['type'])} #{status['message']}'?")
+        outfile = "#{checkname}.yaml"
+        file.open(outfile, 'a+') do |f|
+          file.puts status.select {|k| k != 'checkname'}
+        end
+      end
+    end
+  end
+end
+
+def is_valid_status(status_hash)
+  if status_hash.key?('checkname') && status_hash.key?('type') && status_hash.key?('message')
+    return true
+  else
+    return false
+  end
 end

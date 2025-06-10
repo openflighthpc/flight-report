@@ -39,6 +39,7 @@ if selected_checks.empty?
 end
 
 #Run selected scripts and log
+status_lines = []
 File.open(RESULTS_FILE, 'a+') do |file|
   file.puts "===== Execution started at #{DateTime.now} ====="
 
@@ -47,6 +48,7 @@ File.open(RESULTS_FILE, 'a+') do |file|
     spinner.auto_spin
     out = run_check(check)
     spinner.success("(Done)")
+    status_lines.append(out)
 
     file.puts "----- #{check['name']} Output -----"
     file.puts out
@@ -57,4 +59,11 @@ File.open(RESULTS_FILE, 'a+') do |file|
 end
 
 puts "All selected checks have been executed. Results located in #{RESULTS_FILE}"
+puts
+puts "Identifying new statuses"
+
+# Offer all new statuses
+status_lines.each do |status|
+  check_to_status(status, prompt)
+end
 

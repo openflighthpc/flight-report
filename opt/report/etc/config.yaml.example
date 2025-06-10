@@ -40,3 +40,9 @@ enable_emojis: true
 # the administrative check files
 privileged_check_users:
 - root
+
+# Set which type of status outputs from checks are offered as new statuses
+#
+# If this setting is set to true then only 'warnings' (problems) will be offered, 
+# otherwise all statuses will be offered regardless of the 'type'
+warnings_only: false

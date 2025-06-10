@@ -83,6 +83,10 @@ class Config
       confval("privileged_check_users", ['root'])
     end
 
+    def warnings_only
+      confval("warnings_only", false)
+    end
+
     def traffic_lights
       if enable_emojis
         return {2 => "😀" , 1 => "😐", 0 => "🙁"}

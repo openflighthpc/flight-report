@@ -129,6 +129,19 @@ echo -e "# Description: Run an encrypted check\necho 'Encrypted script test'" > 
 gpg -c --no-symkey-cache --armour -o etc/checks/encrypted_example.sh.gpg /tmp/encrypted_example.sh.source
 ```
 
+### Checks to Statuses
+
+To improve the process of managing the status of a HPC environment this tool can convert the output of checks into statuses on the system.
+
+For a check to support becoming a status, the check script needs to finish with a return line in the following format (mirroring the content that goes into a check normally, see below section for reference):
+```
+{'checkname': 'NAME_WITHOUT_PACES', 'type': 'STATUS_TYPE',  'message': 'STATUS_MESSAGE'}
+```
+
+If a line like the above is returned then the tool will offer the user the option to add this status message to the system. It is possible to make the tool only prompt for "warning" statuses by setting `warnings_only` in the config file.
+
+The status will be written to `opt/report/etc/statuses/checkname.yaml` where `checkname` is the one provided by the output.
+
 ## Statuses
 
 `Statuses` provide information about the system to a user describing the state of the system. 
