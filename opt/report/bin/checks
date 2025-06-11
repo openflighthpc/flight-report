@@ -56,5 +56,6 @@ File.open(RESULTS_FILE, 'a+') do |file|
   file.puts "===== Execution finished at #{DateTime.now} =====\n\n"
 end
 
+puts File.read(RESULTS_FILE)
 puts "All selected checks have been executed. Results located in #{RESULTS_FILE}"
 
