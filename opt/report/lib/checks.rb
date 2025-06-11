@@ -33,16 +33,25 @@ end
 def get_check_data(checkfile, encrypted=false, password=nil)
   filename = File.basename(checkfile)
   if encrypted
-    begin
-      content = @gpg.decrypt(GPGME::Data.new(File.open(checkfile))).read
-    rescue GPGME::Error::BadPassphrase, GPGME::Error::DecryptFailed
-      puts "Failed to decrypt '#{filename}: Incorrect administrative password provided"
-      exit 1
+    gpg_ver = `gpg --version |head -1 |sed 's/gpg (GnuPG) //g'`.to_f
+    if gpg_ver < 2.1
+      content = `gpg -q -d --batch --passphrase "#{password}" --armor #{checkfile}`
+      if content.empty?
+        puts "Incorrect password or invalid (empty) script"
+        exit 1
+      end
+    else
+      begin
+        content = @gpg.decrypt(GPGME::Data.new(File.open(checkfile))).read
+      rescue GPGME::Error::BadPassphrase, GPGME::Error::DecryptFailed
+        puts "Failed to decrypt '#{filename}: Incorrect administrative password provided"
+        exit 1
+      end
     end
   else
     content = File.read(checkfile)
   end
-  
+
   description = content.each_line.find {|line| line =~ /^# Description: / }&.sub('# Description: ','')&.strip()
   if description.nil?
     description = "No description provided"
