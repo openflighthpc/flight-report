@@ -28,7 +28,6 @@ def get_checks(include_privileged, password)
 
   # Get site checks
   if Config.sitechecksdir
-    puts "Gathering site checks" 
     site_check_files = Dir["#{Config.sitechecksdir}/*.sh"]
 
     # Gather data for site checks
