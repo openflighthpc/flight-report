@@ -14,8 +14,8 @@ An example of putting the files in place and installing dependencies (as root):
 git clone https://github.com/openflighthpc/flight-report /tmp/flight-report
 
 # Copy files into place
-cp -r /tmp/flight-report/opt $flight_ROOT/
-cp -r /tmp/flight-report/libexec $flight_ROOT/
+cp -ru /tmp/flight-report/opt $flight_ROOT/
+cp -ru /tmp/flight-report/libexec $flight_ROOT/
 
 # Optional: Configure CLI tool (otherwise will use default settings)
 ## Open and edit the file to change defaults
