@@ -21,7 +21,7 @@ def get_checks(include_privileged, password)
     # Prevent caching of correct password so it needs to be provided everytime checks are run
     @gpg.set_ctx_flag('no-symkey-cache', 1)
     privileged_check_files.each do |priv_file|
-      checks.append(get_check_data(priv_file, true, password))
+      checks.append(get_check_data(priv_file, encrypted: true, password: password))
     end
     @gpg.release
   end
@@ -32,7 +32,7 @@ def get_checks(include_privileged, password)
 
     # Gather data for site checks
     site_check_files.each do |checkfile|
-      checks.append(get_check_data(checkfile))
+      checks.append(get_check_data(checkfile, source: "Site"))
     end
   end
 
@@ -40,7 +40,7 @@ def get_checks(include_privileged, password)
   return checks
 end
 
-def get_check_data(checkfile, encrypted=false, password=nil)
+def get_check_data(checkfile, encrypted: false, password: nil, source: "Alces")
   filename = File.basename(checkfile)
   if encrypted
     gpg_ver = `gpg --version |head -1 |sed 's/gpg (GnuPG) //g'`.to_f
@@ -67,7 +67,9 @@ def get_check_data(checkfile, encrypted=false, password=nil)
     description = "No description provided"
   end
 
-  out = {"name" => filename, "description" => description, "content" => content}
+  name = "[#{source}] #{filename}"
+
+  out = {"name" => name, "description" => description, "content" => content}
   return out
 end
 
