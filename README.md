@@ -93,7 +93,13 @@ flight_TIP_root="false"
 
 ## Updating
 
-To update the CLI tool simply clone the repository and copy the files into place again, overwriting the existing ones. 
+To update the CLI tool simply clone the repository and copy the files into place again, overwriting the existing ones.
+
+Can only overwrite files that have changed with:
+```bash
+cp -r /tmp/flight-report/opt $flight_ROOT/
+cp -r /tmp/flight-report/libexec $flight_ROOT/
+```
 
 # File Structure
 
@@ -111,6 +117,8 @@ Each check script must:
 - Be created in `etc/checks/` and end with `.sh`
 - Contain a line starting `# Description:` followed by a brief description of what the script does
 - Be a BASH script
+
+For a user to have access to encrypted checks and have their checks automatically saved to a report file they will need to be in the privileged users list in the config file.
 
 ### Encrypted Checks
 
@@ -132,6 +140,8 @@ gpg -c --no-symkey-cache --armour -o etc/checks/encrypted_example.sh.gpg /tmp/en
 ### Site Checks
 
 A configurable "site" directory can be specified in config.yaml which provides an extra source of check scripts.
+
+These scripts also have to stick to the "musts" specified at the beginning of this section (except the location must be in the location specified by `sitechecksdir` in `config.yaml`)
 
 ## Statuses
 

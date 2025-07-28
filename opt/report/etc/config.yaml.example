@@ -38,6 +38,8 @@ enable_emojis: true
 # Any users in this list that run the check command will additionally be asked if they
 # want to run administrative checks and will be prompted for a password to decrypt 
 # the administrative check files
+#
+# Additionally, these users will have their check saved as a report
 privileged_check_users:
 - root
 
