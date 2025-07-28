@@ -129,6 +129,10 @@ echo -e "# Description: Run an encrypted check\necho 'Encrypted script test'" > 
 gpg -c --no-symkey-cache --armour -o etc/checks/encrypted_example.sh.gpg /tmp/encrypted_example.sh.source
 ```
 
+### Site Checks
+
+A configurable "site" directory can be specified in config.yaml which provides an extra source of check scripts.
+
 ## Statuses
 
 `Statuses` provide information about the system to a user describing the state of the system. 

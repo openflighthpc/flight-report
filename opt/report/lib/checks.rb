@@ -26,6 +26,17 @@ def get_checks(include_privileged, password)
     @gpg.release
   end
 
+  # Get site checks
+  if Config.sitechecksdir
+    puts "Gathering site checks" 
+    site_check_files = Dir["#{Config.sitechecksdir}/*.sh"]
+
+    # Gather data for site checks
+    site_check_files.each do |checkfile|
+      checks.append(get_check_data(checkfile))
+    end
+  end
+
   # Returns a hash of all available checks
   return checks
 end

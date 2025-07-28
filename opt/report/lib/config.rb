@@ -83,6 +83,10 @@ class Config
       confval("privileged_check_users", ['root'])
     end
 
+    def sitechecksdir
+      confval("sitechecksdir", nil)
+    end
+
     def traffic_lights
       if enable_emojis
         return {2 => "😀" , 1 => "😐", 0 => "🙁"}

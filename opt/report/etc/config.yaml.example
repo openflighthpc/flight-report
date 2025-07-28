@@ -40,3 +40,8 @@ enable_emojis: true
 # the administrative check files
 privileged_check_users:
 - root
+
+# Specify additional directory for checks to be sourced from
+#
+# If this is set then checks will additionally be presented from here to users
+# sitechecksdir: /opt/site/scripts
