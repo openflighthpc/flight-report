@@ -55,9 +55,10 @@ File.open(TMP_RESULTS, 'a+') do |file|
   file.puts "===== Execution finished at #{DateTime.now} =====\n\n"
 end
 
+puts 
 TMP_RESULTS.close
-File.read(TMP_RESULTS)
-TMP_RESULTS.unlink
+puts File.read(TMP_RESULTS)
+File.unlink(TMP_RESULTS.path)
 
 if check_privileged
   TIMESTAMP = Time.now.strftime("%Y-%m-%d_%H-%M")
