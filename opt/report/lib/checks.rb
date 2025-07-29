@@ -52,7 +52,7 @@ def get_check_data(checkfile, encrypted: false, password: nil, source: "Alces")
       end
     else
       begin
-        content = @gpg.decrypt(GPGME::Data.new(File.open(checkfile))).read
+        content = @gpg.decrypt(GPGME::Data.new(File.open(checkfile))).to_s
       rescue GPGME::Error::BadPassphrase, GPGME::Error::DecryptFailed
         puts "Failed to decrypt '#{filename}: Incorrect administrative password provided"
         exit 1
