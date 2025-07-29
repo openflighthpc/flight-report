@@ -47,3 +47,9 @@ privileged_check_users:
 #
 # If this is set then checks will additionally be presented from here to users
 # sitechecksdir: /opt/site/scripts
+
+# Force the usage of the GPG CLI 
+#
+# In some situations on GPG 2.1+ the Ruby gem can have issues with silent failure.
+# This could be because of the gem or specifically GPG v2.2.20.
+force_gpg_cli: false

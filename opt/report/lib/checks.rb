@@ -44,7 +44,7 @@ def get_check_data(checkfile, encrypted: false, password: nil, source: "Alces")
   filename = File.basename(checkfile)
   if encrypted
     gpg_ver = `gpg --version |head -1 |sed 's/gpg (GnuPG) //g'`.to_f
-    if gpg_ver < 2.1
+    if gpg_ver < 2.1 || Config.force_gpg_cli
       content = `gpg -q -d --batch --passphrase "#{password}" --armor #{checkfile}`
       if content.empty?
         puts "Incorrect password or invalid (empty) script"
