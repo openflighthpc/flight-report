@@ -9,8 +9,6 @@ require 'tempfile'
 require_relative "../lib/config"
 require_relative "../lib/checks"
 
-TMP_RESULTS = Tempfile.create
-
 prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
 password = nil
@@ -38,6 +36,7 @@ if selected_checks.empty?
 end
 
 #Run selected scripts and log
+TMP_RESULTS = Tempfile.create
 File.open(TMP_RESULTS, 'a+') do |file|
   file.puts "===== Execution started at #{DateTime.now} ====="
 
