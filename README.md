@@ -120,6 +120,14 @@ Each check script must:
 
 For a user to have access to encrypted checks and have their checks automatically saved to a report file they will need to be in the privileged users list in the config file.
 
+### [Optional] Check Questions
+
+A check can ask some questions to a user too which will be exported as environment variables to the shell. A questions file must: 
+- Be in the same directory as the script
+- Be named the same but end with `.sh.questions`
+
+The formatting of this file is the same as the `questions.yaml` file for Issues.
+
 ### Encrypted Checks
 
 Encrypted checks are useful for allowing only certain users entrusted with a decryption password to be able to execute the tests (without exposing the content of the scripts to unauthorised users). 

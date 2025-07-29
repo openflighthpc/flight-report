@@ -8,14 +8,15 @@ require 'tempfile'
 
 require_relative "../lib/config"
 require_relative "../lib/checks"
+require_relative "../lib/utils"
 
-prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
+@prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
 password = nil
 if check_privileged
-  privileged = prompt.yes?("Do you want to run administrative checks?")
+  privileged = @prompt.yes?("Do you want to run administrative checks?")
   if privileged
-    password = prompt.mask("Enter passphrase for administrative checks:")
+    password = @prompt.mask("Enter passphrase for administrative checks:")
   end
 end
 
@@ -26,13 +27,25 @@ if checks.empty?
   exit
 end
 
-selected_checks = prompt.multi_select("Select checks to run:", per_page: 10) do |menu| 
+selected_checks = @prompt.multi_select("Select checks to run:", per_page: 10) do |menu| 
   checks.each.map {|check| menu.choice "#{check['name']}: #{check['description']}", check}
 end
 
 if selected_checks.empty?
   puts "No checks selected. Exiting."
   exit
+end
+
+# Get additional info per script
+selected_checks.each do |check|
+  if check['questions']
+    puts
+    puts "#{check['name']} - Additional information needed before running check"
+    check['vars'] = {}
+    check['questions'].each do |question|
+      check['vars'][question['var']] = ask_question(question)
+    end
+  end
 end
 
 #Run selected scripts and log
@@ -43,6 +56,11 @@ File.open(TMP_RESULTS, 'a+') do |file|
   selected_checks.each do |check|
     spinner = TTY::Spinner.new("[:spinner] Running #{check['name']} ...", format: :bouncing_ball)
     spinner.auto_spin
+    if check.key?('vars')
+      check['vars'].each do |key, val|
+        ENV[key] = val
+      end
+    end
     out = run_check(check)
     spinner.success("(Done)")
 

@@ -62,6 +62,14 @@ def get_check_data(checkfile, encrypted: false, password: nil, source: "Alces")
     content = File.read(checkfile)
   end
 
+  # Questions
+  questionsfile = checkfile + '.questions'
+  if File.file?(questionsfile)
+    questions = YAML.load_file(questionsfile)
+  else
+    questions = nil
+  end
+
   description = content.each_line.find {|line| line =~ /^# Description: / }&.sub('# Description: ','')&.strip()
   if description.nil?
     description = "No description provided"
@@ -69,7 +77,7 @@ def get_check_data(checkfile, encrypted: false, password: nil, source: "Alces")
 
   name = "[#{source}] #{filename}"
 
-  out = {"name" => name, "description" => description, "content" => content}
+  out = {"name" => name, "description" => description, "content" => content, "questions" => questions}
   return out
 end
 
