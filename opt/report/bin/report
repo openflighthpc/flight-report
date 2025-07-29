@@ -10,6 +10,7 @@ require_relative "../lib/config"
 require_relative "../lib/metrics"
 require_relative "../lib/report"
 require_relative "../lib/statistics"
+require_relative "../lib/utils"
 require_relative "../lib/xy"
 
 ARGS={}
@@ -41,7 +42,7 @@ statuses = {}
 report = Report.new
 
 # Create prompt
-prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
+@prompt = TTY::Prompt.new(active_color: :blue, interrupt: :exit)
 
 #
 # Stage 0: Log that someone has actually used this
@@ -56,7 +57,7 @@ end
 # Stage 1: Traffic Light Response Rating
 #
 
-happy = prompt.select("How would you rate your experience on your HPC environment today?", Config.traffic_lights.invert)
+happy = @prompt.select("How would you rate your experience on your HPC environment today?", Config.traffic_lights.invert)
 report.log['meta']['rating'] = happy
 
 ratingfile = "#{Config.ratingsdir}/#{report.ratingfilename}"
@@ -96,7 +97,7 @@ puts
 
 # Check with user
 if ! Config.always_report 
-  yes = prompt.yes?('Would you like to report an issue?', default: false)
+  yes = @prompt.yes?('Would you like to report an issue?', default: false)
   if ! yes
     puts "Thank you for time! Your response has been recorded"
     exit
@@ -113,7 +114,7 @@ issuedirs.each do |issue|
     issues[issue]['questions'] = YAML.load_file("#{issuedir}/questions.yaml")
   end
 end
-my_issue_dir = prompt.select("What issue would you like to report?") do |menu|
+my_issue_dir = @prompt.select("What issue would you like to report?") do |menu|
   issues.each.map {|dir,data| menu.choice "#{data['title']} (#{data['desc']})", dir}
 end
 
@@ -124,19 +125,7 @@ report.log['meta']['issue_id'] = my_issue_dir
 diag_vars = {}
 if my_issue.key?('questions') then
   my_issue['questions'].each do |question|
-    case question['type']
-    when "boolean"
-      answer = prompt.yes?(question['question'])
-    when "list"
-      answer = prompt.select(question['question'], question['options'])
-    when "text"
-      answer = prompt.ask(question['question'])
-    when "number"
-      answer = prompt.ask(question['question']) do |q|
-        q.validate(/^[0-9]*$/, "Answer must be a number or empty")
-      end
-    end
-    diag_vars[question['var']] = answer
+    diag_vars[question['var']] = ask_question(question)
   end
 end
 
@@ -220,7 +209,7 @@ spinner.success("Done!")
 
 # Show diagnostics to user
 if ! Config.hide_diagnostics
-  view = prompt.yes?("Would you like to view diagnostics?", default: false)
+  view = @prompt.yes?("Would you like to view diagnostics?", default: false)
   if view
     IO.popen("less", "w") { |f| f.puts report.outputs }
   end
@@ -236,7 +225,7 @@ if ! Config.hide_compare
   if prev_report_from_user && File.file?(prev_report_from_user)
     prev_report = Report.new(prev_report_from_user)
     prev_datetime = prev_report.log['meta']['issue_at']
-    compare = prompt.yes?("Would you like to compare diagnostics to your previous report at #{DateTime.parse(prev_datetime).strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
+    compare = @prompt.yes?("Would you like to compare diagnostics to your previous report at #{DateTime.parse(prev_datetime).strftime("%Y-%m-%d %H:%M:%S")}?", default: false)
     if compare
       current = "# Current Diagnostics: #{DateTime.parse(report.log['meta']['issue_at']).strftime("%Y-%m-%d %H:%M:%S")}\n#{report.outputs}"
       previous = "# Previous Diagnostics: #{DateTime.parse(prev_datetime).strftime("%Y-%m-%d %H:%M:%S")}\n#{prev_report.outputs}"
@@ -257,8 +246,8 @@ else
   yesreport = true
 end
 until yesconfirm
-  yesreport = prompt.yes?("Would you like to send diagnostics report for '#{my_issue['title']}' to admin?", default: false)
-  yesconfirm = prompt.yes?("  Are you sure?", default: false)
+  yesreport = @prompt.yes?("Would you like to send diagnostics report for '#{my_issue['title']}' to admin?", default: false)
+  yesconfirm = @prompt.yes?("  Are you sure?", default: false)
 end
 
 if yesreport
