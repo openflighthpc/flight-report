@@ -57,11 +57,11 @@ end
 puts 
 TMP_RESULTS.close
 puts File.read(TMP_RESULTS)
-File.unlink(TMP_RESULTS.path)
 
 if check_privileged
   TIMESTAMP = Time.now.strftime("%Y-%m-%d_%H-%M")
   RESULTS_FILE = "#{Config.checkresultsdir}/status-report-#{TIMESTAMP}.txt"
-  File.write(RESULTS_FILE, check_output)
+  FileUtils.cp(TMP_RESULTS, RESULTS_FILE)
   puts "All selected checks have been executed. Results located in #{RESULTS_FILE}"
 end
+File.unlink(TMP_RESULTS.path)
