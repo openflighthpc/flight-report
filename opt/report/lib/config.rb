@@ -83,6 +83,14 @@ class Config
       confval("privileged_check_users", ['root'])
     end
 
+    def sitechecksdir
+      confval("sitechecksdir", nil)
+    end
+
+    def force_gpg_cli
+      confval("force_gpg_cli", false)
+    end
+
     def traffic_lights
       if enable_emojis
         return {2 => "😀" , 1 => "😐", 0 => "🙁"}

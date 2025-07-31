@@ -38,5 +38,18 @@ enable_emojis: true
 # Any users in this list that run the check command will additionally be asked if they
 # want to run administrative checks and will be prompted for a password to decrypt 
 # the administrative check files
+#
+# Additionally, these users will have their check saved as a report
 privileged_check_users:
 - root
+
+# Specify additional directory for checks to be sourced from
+#
+# If this is set then checks will additionally be presented from here to users
+# sitechecksdir: /opt/site/scripts
+
+# Force the usage of the GPG CLI 
+#
+# In some situations on GPG 2.1+ the Ruby gem can have issues with silent failure.
+# This could be because of the gem or specifically GPG v2.2.20.
+force_gpg_cli: false
